@@ -114,8 +114,13 @@ public partial class EuclidEngine
 
     public static Area CreateArea(double interiorX, double interiorY, double interiorZ, double exteriorX, double exteriorY, double exteriorZ)
     {
-        IntPtr area = EEAreaCreate(interiorX, interiorY, interiorZ, exteriorX, exteriorY, exteriorZ);
-        return new Area(area);
+        IntPtr intPtr = EEAreaCreate(interiorX, interiorY, interiorZ, exteriorX, exteriorY, exteriorZ);
+
+        GameObject obj = new GameObject();
+
+        Area area = obj.AddComponent<Area>();
+        area._area = intPtr;
+        return area;
     }
 
     public static void DeleteArea(Area area)

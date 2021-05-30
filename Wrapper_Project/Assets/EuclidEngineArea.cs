@@ -16,11 +16,6 @@ public partial class EuclidEngine
         private SizeGetterFn _sizeGetter;
         private ScalerFn _scaler;
 
-        public Area(IntPtr eePtr)
-        {
-            _area = eePtr;
-        }
-
         void Awake()
         {
             print("Awake" + GetInstanceID().ToString());
