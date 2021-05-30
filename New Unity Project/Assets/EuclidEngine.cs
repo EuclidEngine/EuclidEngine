@@ -1,14 +1,28 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEditor;
 
-public static class EuclidEngine
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+public partial class EuclidEngine
 {
+    private static Func<int, UnityEngine.Object> FindObjectFromInstanceID = null;
+    static EuclidEngine()
+    {
+        FindObjectFromInstanceID = (Func<int, UnityEngine.Object>)Delegate.CreateDelegate(
+            typeof(Func<int, UnityEngine.Object>),
+            typeof(UnityEngine.Object).GetMethod("FindObjectFromInstanceID",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static));
+    }
+
 #if UNITY_IOS
     private const string eePlugin = "__Internal";
 #else
     private const string eePlugin = "EEPluginCpp";
 #endif
+
     /* 
     * @brief Create a new NEA, with given dimension
     * 
@@ -20,7 +34,7 @@ public static class EuclidEngine
     * @param internalSizeZ The size of the area inside the object on the Z coordinate
     */
     [DllImport(eePlugin)] public static extern IntPtr EEAreaCreate(double iX, double iY, double iZ, double eX, double eY, double eZ);
-    
+
     /*
      * @brief Destroy the Area object
     */
@@ -90,10 +104,22 @@ public static class EuclidEngine
     */
     [DllImport(eePlugin)] public static extern void EEAreaUpdate(IntPtr area);
 
+    private delegate void ScalerFn(IntPtr go, double x, double y, double z);
+    private delegate void PositionGetterFn(IntPtr go, ref double x, ref double y, ref double z);
+    private delegate void SizeGetterFn(IntPtr go, ref double minX, ref double minY, ref double minZ, ref double maxX, ref double maxY, ref double maxZ);
+    [DllImport(eePlugin)] private static extern void EEAreaSetAreaPositionGetterCallback(IntPtr area, PositionGetterFn callback);
+    [DllImport(eePlugin)] private static extern void EEAreaSetScalerCallback(IntPtr area, ScalerFn callback);
+    [DllImport(eePlugin)] private static extern void EEAreaSetPositionGetterCallback(IntPtr area, PositionGetterFn callback);
+    [DllImport(eePlugin)] private static extern void EEAreaSetSizeGetterCallback(IntPtr area, SizeGetterFn callback);
 
-    /* TODO: to be implemented later (function using callback as arguments) 
-    [DllImport(eePlugin)] public static extern void EEAreaSetAreaPositionGetterCallback(IntPtr area, AsyncCallback callback);
-    [DllImport(eePlugin)] public static extern void EEAreaSetScalerCallback(IntPtr area, AsyncCallback callback);
-    [DllImport(eePlugin)] public static extern void EEAreaSetPositionGetterCallback(IntPtr area, AsyncCallback callback);
-    [DllImport(eePlugin)] public static extern void EEAreaSetSizeGetterCallback(IntPtr area, AsyncCallback callback);*/
+    Area CreateArea(double interiorX, double interiorY, double interiorZ, double exteriorX, double exteriorY, double exteriorZ)
+    {
+        IntPtr area = EEAreaCreate(interiorX, interiorY, interiorZ, exteriorX, exteriorY, exteriorZ);
+        return new Area(area);
+    }
+
+    void DeleteArea(Area area)
+    {
+        EEAreaDelete(area._area);
+    }
 }
