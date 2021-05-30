@@ -112,13 +112,13 @@ public partial class EuclidEngine
     [DllImport(eePlugin)] private static extern void EEAreaSetPositionGetterCallback(IntPtr area, PositionGetterFn callback);
     [DllImport(eePlugin)] private static extern void EEAreaSetSizeGetterCallback(IntPtr area, SizeGetterFn callback);
 
-    Area CreateArea(double interiorX, double interiorY, double interiorZ, double exteriorX, double exteriorY, double exteriorZ)
+    public static Area CreateArea(double interiorX, double interiorY, double interiorZ, double exteriorX, double exteriorY, double exteriorZ)
     {
         IntPtr area = EEAreaCreate(interiorX, interiorY, interiorZ, exteriorX, exteriorY, exteriorZ);
         return new Area(area);
     }
 
-    void DeleteArea(Area area)
+    public static void DeleteArea(Area area)
     {
         EEAreaDelete(area._area);
     }
