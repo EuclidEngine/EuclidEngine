@@ -112,6 +112,8 @@ public class EuclidEngine
     [DllImport(eePlugin)] public static extern void EEAreaSetPositionGetterCallback(IntPtr area, PositionGetterFn callback);
     [DllImport(eePlugin)] public static extern void EEAreaSetSizeGetterCallback(IntPtr area, SizeGetterFn callback);
 
+    // [DllImport(eePlugin)] public static extern void EEAreaGetSize(IntPtr area, ref double x, ref double y, ref double z);
+
     public static EuclidEngineArea CreateArea(double interiorX, double interiorY, double interiorZ, double exteriorX, double exteriorY, double exteriorZ)
     {
         IntPtr intPtr = EEAreaCreate(interiorX, interiorY, interiorZ, exteriorX, exteriorY, exteriorZ);
@@ -120,7 +122,13 @@ public class EuclidEngine
 
         EuclidEngineArea area = obj.AddComponent<EuclidEngineArea>();
         area._area = intPtr;
+        area.SetExternalSize(exteriorX, exteriorY, exteriorZ);
         return area;
+    }
+
+    public static EuclidEngineArea CreateArea(double exteriorX, double exteriorY, double exteriorZ)
+    {
+        return CreateArea(1.0f, 1.0f, 1.0f, exteriorX, exteriorY, exteriorZ);
     }
 
     public static void DeleteArea(EuclidEngineArea area)

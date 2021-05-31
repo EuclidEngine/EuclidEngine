@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+[RequireComponent(typeof(BoxCollider), typeof(Rigidbody))]
 public class EuclidEngineArea : MonoBehaviour
 {
     public IntPtr _area;
@@ -14,12 +15,19 @@ public class EuclidEngineArea : MonoBehaviour
     private EuclidEngine.SizeGetterFn _sizeGetter;
     private EuclidEngine.ScalerFn _scaler;
 
+    private void Reset()
+    {
+        var boxCollider = GetComponent<BoxCollider>();
+        var rigidbody = GetComponent<Rigidbody>();
+
+        boxCollider.isTrigger = true;
+        
+        rigidbody.isKinematic = true;
+        rigidbody.useGravity = false;
+    }
+
     void Awake()
     {
-        print("Awake" + GetInstanceID().ToString());
-        _area = EuclidEngine.EEAreaCreate(18, 18, 18, 20, 10, 5);
-        EuclidEngine.EEAreaSetTransitAreaSize(_area, 0, 0, 0);
-
         _areaPosGetter = new EuclidEngine.PositionGetterFn(SetAreaPosition);
         EuclidEngine.EEAreaSetAreaPositionGetterCallback(_area, _areaPosGetter);
         _posGetter = new EuclidEngine.PositionGetterFn(SetObjectPosition);
@@ -82,6 +90,14 @@ public class EuclidEngineArea : MonoBehaviour
         //print("Scale");
         Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         collider.transform.localScale = new Vector3((float)x, (float)y, (float)z);
+    }
+
+    public void SetExternalSize(double x, double y, double z)
+    {
+        EuclidEngine.EEAreaSetSize(_area, x, z, y);
+
+        var boxCollider = GetComponent<BoxCollider>();
+        boxCollider.size = new Vector3((float)x, (float)y, (float)z);
     }
 
     public void SetTransitAreaSize(double sizeX, double sizeY, double sizeZ)
