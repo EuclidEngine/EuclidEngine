@@ -9,9 +9,9 @@ using System.Runtime.InteropServices;
 public class EuclidEngine
 {
 #if UNITY_IOS
-    public static string plugin = "__Internal";
+    public const string plugin = "__Internal";
 #else
-    public static string plugin = "EEPluginCpp";
+    public const string plugin = "EEPluginCpp";
 #endif
 
     public static Func<int, UnityEngine.Object> FindObjectFromInstanceID = null;

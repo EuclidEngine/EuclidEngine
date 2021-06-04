@@ -75,14 +75,14 @@ public class EuclidEngineArea : MonoBehaviour
     //Called on launch
     void Awake()
     {
-        _areaPosGetter = new EuclidEngine.PositionGetterFn(SetAreaPosition);
-        EuclidEngine.EEAreaSetAreaPositionGetterCallback(_area, _areaPosGetter);
-        _posGetter = new EuclidEngine.PositionGetterFn(SetObjectPosition);
-        EuclidEngine.EEAreaSetPositionGetterCallback(_area, _posGetter);
-        _sizeGetter = new EuclidEngine.SizeGetterFn(SetObjectSize);
-        EuclidEngine.EEAreaSetSizeGetterCallback(_area, _sizeGetter);
-        _scaler = new EuclidEngine.ScalerFn(ScaleObjetct);
-        EuclidEngine.EEAreaSetScalerCallback(_area, _scaler);
+        _areaPosGetter = new PositionGetterFn(SetAreaPosition);
+        EEAreaSetAreaPositionGetterCallback(_area, _areaPosGetter);
+        _posGetter = new PositionGetterFn(SetObjectPosition);
+        EEAreaSetPositionGetterCallback(_area, _posGetter);
+        _sizeGetter = new SizeGetterFn(SetObjectSize);
+        EEAreaSetSizeGetterCallback(_area, _sizeGetter);
+        _scaler = new ScalerFn(ScaleObjetct);
+        EEAreaSetScalerCallback(_area, _scaler);
     }
 
     //Called on launch, after Awake
@@ -94,26 +94,26 @@ public class EuclidEngineArea : MonoBehaviour
     //Called at end (of object or scene)
     void OnDestroy()
     {
-        EuclidEngine.EEAreaDelete(_area);
+        EEAreaDelete(_area);
     }
 
     //Called on collision
     void OnTriggerEnter(Collider c)
     {
         int id = c.GetInstanceID();
-        EuclidEngine.EEAreaAddObjectInside(_area, id, (IntPtr)id);
+        EEAreaAddObjectInside(_area, id, (IntPtr)id);
     }
 
     //Called at the end of collision
     void OnTriggerExit(Collider c)
     {
-        EuclidEngine.EEAreaRemoveObjectInside(_area, c.GetInstanceID());
+        EEAreaRemoveObjectInside(_area, c.GetInstanceID());
     }
 
     //Called every frame
     void Update()
     {
-        EuclidEngine.EEAreaUpdate(_area);
+        EEAreaUpdate(_area);
     }
 
 
@@ -123,20 +123,18 @@ public class EuclidEngineArea : MonoBehaviour
     /*                                              */
     /************************************************/
 
-    public static EuclidEngineArea Instantiate(Vector3 position = Vector3.zero, Quaternion rotation = Quaternion.identity)
-    { return EuclidEngineArea.Instantiate(Vector3.one, Vector3.one, Vector3.zero, position, rotation); }
+    public static EuclidEngineArea Instantiate(Vector3 position, Quaternion rotation)
+    { return EuclidEngineArea.Instantiate(new Vector3(1f, 1f, 1f), new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), position, rotation); }
     public static EuclidEngineArea Instantiate(Vector3 position, Quaternion rotation, Transform parent)
-    { return EuclidEngineArea.Instantiate(Vector3.one, Vector3.one, Vector3.zero, position, rotation, parent); }
+    { return EuclidEngineArea.Instantiate(new Vector3(1f, 1f, 1f), new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), position, rotation, parent); }
 
-    public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 position = Vector3.zero, Quaternion rotation = Vector3.zero)
-    { return EuclidEngineArea.Instantiate(areaSize, internalSize, Vector3.zero, position, rotation); }
+    public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 position, Quaternion rotation)
+    { return EuclidEngineArea.Instantiate(areaSize, internalSize, new Vector3(0f, 0f, 0f), position, rotation); }
     public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 position, Quaternion rotation, Transform parent)
-    { return EuclidEngineArea.Instantiate(areaSize, internalSize, Vector3.zero, position, rotation, parent); }
+    { return EuclidEngineArea.Instantiate(areaSize, internalSize, new Vector3(0f, 0f, 0f), position, rotation, parent); }
 
-    public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 transitionSize, Vector3 position = Vector3.zero, Quaternion rotation = Vector3.zero)
-    {
-        return EuclidEngineArea.Instantiate(areaSize, internalSize, transitionSize, position, rotation, null);
-    }
+    public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 transitionSize, Vector3 position, Quaternion rotation)
+    { return EuclidEngineArea.Instantiate(areaSize, internalSize, transitionSize, position, rotation, null); }
 
     public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 transitionSize, Vector3 position, Quaternion rotation, Transform parent)
     {
@@ -164,7 +162,7 @@ public class EuclidEngineArea : MonoBehaviour
         get { return _size; }
         set {
             if (value.x <= 0 || value.y <= 0 || value.z <= 0)
-                throw new ArgumentOutOfRangeException("size", "Size must be strictly positiv"));
+                throw new ArgumentOutOfRangeException("size", "Size must be strictly positiv");
             _size = value;
             EEAreaSetSize(_area, (double)_size.x, (double)_size.z, (double)_size.y);
             _collider.size = _size + 2 * _transitSize;
@@ -176,9 +174,9 @@ public class EuclidEngineArea : MonoBehaviour
         get { return _internalSize; }
         set {
             if (value.x <= 0 || value.y <= 0 || value.z <= 0)
-                throw new ArgumentOutOfRangeException("internalSize", "Internal size must be strictly positiv"));
+                throw new ArgumentOutOfRangeException("internalSize", "Internal size must be strictly positiv");
             _internalSize = value;
-            EEAreaSetIntenalSize(_area, (double)_internalSize.x, (double)_internalSize.z, (double)_internalSize.y);
+            EEAreaSetInternalSize(_area, (double)_internalSize.x, (double)_internalSize.z, (double)_internalSize.y);
         }
     }
 
@@ -187,9 +185,9 @@ public class EuclidEngineArea : MonoBehaviour
         get { return _transitSize; }
         set {
             if (value.x < 0 || value.y < 0 || value.z < 0)
-                throw new ArgumentOutOfRangeException("transitSize", "Transition size cannot be negativ"));
+                throw new ArgumentOutOfRangeException("transitSize", "Transition size cannot be negativ");
             _transitSize = value;
-            EEAreaSetTransitSize(_area, (double)_transitSize.x, (double)_transitSize.z, (double)_transitSize.y);
+            EEAreaSetTransitAreaSize(_area, (double)_transitSize.x, (double)_transitSize.z, (double)_transitSize.y);
             _collider.size = _size + 2 * _transitSize;
         }
     }
@@ -204,17 +202,17 @@ public class EuclidEngineArea : MonoBehaviour
     public void SetSize(Vector3 areaSize, Vector3 internalSize, Vector3 transitionSize)
     {
         if (areaSize.x <= 0 || areaSize.y <= 0 || areaSize.z <= 0)
-            throw new ArgumentOutOfRangeException("areaSize", "Size must be strictly positiv"));
+            throw new ArgumentOutOfRangeException("areaSize", "Size must be strictly positiv");
         if (internalSize.x <= 0 || internalSize.y <= 0 || internalSize.z <= 0)
-            throw new ArgumentOutOfRangeException("internalSize", "Internal size must be strictly positiv"));
+            throw new ArgumentOutOfRangeException("internalSize", "Internal size must be strictly positiv");
         if (transitionSize.x < 0 || transitionSize.y < 0 || transitionSize.z < 0)
-            throw new ArgumentOutOfRangeException("transitionSize", "Transition size cannot be negativ"));
+            throw new ArgumentOutOfRangeException("transitionSize", "Transition size cannot be negativ");
         _size = areaSize;
         _internalSize = internalSize;
         _transitSize = transitionSize;
         EEAreaSetSize(_area, (double)_size.x, (double)_size.z, (double)_size.y);
-        EEAreaSetIntenalSize(_area, (double)_internalSize.x, (double)_internalSize.z, (double)_internalSize.y);
-        EEAreaSetTransitSize(_area, (double)_transitSize.x, (double)_transitSize.z, (double)_transitSize.y);
+        EEAreaSetInternalSize(_area, (double)_internalSize.x, (double)_internalSize.z, (double)_internalSize.y);
+        EEAreaSetTransitAreaSize(_area, (double)_transitSize.x, (double)_transitSize.z, (double)_transitSize.y);
         _collider.size = _size + 2 * _transitSize;
     }
 
