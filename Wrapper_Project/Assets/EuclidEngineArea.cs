@@ -15,7 +15,7 @@ public class EuclidEngineArea : MonoBehaviour
     /*                                              */
     /************************************************/
 
-    [DllImport(EuclidEngine.plugin)] private static extern IntPtr EEAreaCreate(double iX, double iY, double iZ, double eX, double eY, double eZ);
+    [DllImport(EuclidEngine.plugin)] private static extern IntPtr EEAreaCreate(double eX, double eY, double eZ, double iX, double iY, double iZ);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaDelete(IntPtr area);
         private delegate void PositionGetterFn(IntPtr go, ref double x, ref double y, ref double z);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetAreaPositionGetterCallback(IntPtr area, PositionGetterFn callback);
@@ -75,6 +75,8 @@ public class EuclidEngineArea : MonoBehaviour
     //Called on launch
     void Awake()
     {
+        _area = EEAreaCreate(_size.x, _size.y, _size.z, _internalSize.x, _internalSize.y, _internalSize.z);
+
         _areaPosGetter = new PositionGetterFn(SetAreaPosition);
         EEAreaSetAreaPositionGetterCallback(_area, _areaPosGetter);
         _posGetter = new PositionGetterFn(SetObjectPosition);
@@ -89,6 +91,7 @@ public class EuclidEngineArea : MonoBehaviour
     void Start()
     {
         _collider = GetComponent<BoxCollider>();
+        _collider.size = _size + 2 * _transitSize;
     }
 
     //Called at end (of object or scene)
@@ -258,7 +261,6 @@ public class EuclidEngineArea : MonoBehaviour
 
     private void ScaleObjetct(IntPtr go, double x, double y, double z)
     {
-        //print("Scale");
         Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         collider.transform.localScale = new Vector3((float)x, (float)y, (float)z);
     }
