@@ -75,7 +75,8 @@ public class EuclidEngineArea : MonoBehaviour
     //Called on launch
     void Awake()
     {
-        _area = EEAreaCreate(_size.x, _size.y, _size.z, _internalSize.x, _internalSize.y, _internalSize.z);
+        _area = EEAreaCreate(_size.x, _size.z, _size.y, _internalSize.x, _internalSize.z, _internalSize.y);
+        EEAreaSetTransitAreaSize(_area, _transitSize.x, _transitSize.z, _transitSize.y);
 
         _areaPosGetter = new PositionGetterFn(SetAreaPosition);
         EEAreaSetAreaPositionGetterCallback(_area, _areaPosGetter);
@@ -236,32 +237,32 @@ public class EuclidEngineArea : MonoBehaviour
     private void SetAreaPosition(IntPtr _, ref double x, ref double y, ref double z)
     {
         x = transform.position.x;
-        y = transform.position.y;
-        z = transform.position.z;
+        y = transform.position.z;
+        z = transform.position.y;
     }
 
     private void SetObjectPosition(IntPtr go, ref double x, ref double y, ref double z)
     {
         Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         x = collider.transform.position.x;
-        y = collider.transform.position.y;
-        z = collider.transform.position.z;
+        y = collider.transform.position.z;
+        z = collider.transform.position.y;
     }
 
     private void SetObjectSize(IntPtr go, ref double minx, ref double miny, ref double minz, ref double maxx, ref double maxy, ref double maxz)
     {
         Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         minx = collider.bounds.min.x;
-        miny = collider.bounds.min.y;
-        minz = collider.bounds.min.z;
+        miny = collider.bounds.min.z;
+        minz = collider.bounds.min.y;
         maxx = collider.bounds.max.x;
-        maxy = collider.bounds.max.y;
-        maxz = collider.bounds.max.z;
+        maxy = collider.bounds.max.z;
+        maxz = collider.bounds.max.y;
     }
 
     private void ScaleObjetct(IntPtr go, double x, double y, double z)
     {
         Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
-        collider.transform.localScale = new Vector3((float)x, (float)y, (float)z);
+        collider.transform.localScale = new Vector3((float)x, (float)z, (float)y);
     }
 }
