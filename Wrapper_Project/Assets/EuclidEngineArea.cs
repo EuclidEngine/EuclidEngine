@@ -7,6 +7,16 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 [RequireComponent(typeof(BoxCollider), typeof(Rigidbody))]
+
+/// @brief The Non-Euclidean Area (NEA) object, deserved by Euclid Engine
+///
+/// @details A NEA is a small space inside another space. It may have different dimensions than the oiginal space.
+///
+/// This is defined with a different external and internal size. The external size is the size of the Area, defining the space it will occuped on the world. The internal size is the size of the space inside the Area, defining the distance to cross the Area from both end.
+///
+/// Every object inside a NEA are anchored relatively to their internal position and the center of the area. 
+///
+/// By default, an EuclidEngineArea as an external and internal size of 1, with no transition area.
 public class EuclidEngineArea : MonoBehaviour
 {
     /************************************************/
@@ -61,7 +71,7 @@ public class EuclidEngineArea : MonoBehaviour
     /************************************************/
 
     //Called in editor, when creating object
-    private void Reset()
+    void Reset()
     {
         var boxCollider = GetComponent<BoxCollider>();
         var rigidbody = GetComponent<Rigidbody>();
@@ -127,19 +137,48 @@ public class EuclidEngineArea : MonoBehaviour
     /*                                              */
     /************************************************/
 
+    /// @brief Construct a new default EuclidEngineArea
+    /// @param position World position of the new EuclidEngineArea
+    /// @param rotation World rotation of the new EuclidEngineArea
+    /// @return A new EuclidEngineArea attached on a new GameObject
     public static EuclidEngineArea Instantiate(Vector3 position, Quaternion rotation)
     { return EuclidEngineArea.Instantiate(new Vector3(1f, 1f, 1f), new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), position, rotation); }
+    /// @brief Construct a new default EuclidEngineArea
+    /// @param position Local position of the new EuclidEngineArea
+    /// @param rotation Local rotation of the new EuclidEngineArea
+    /// @param parent The parent of the new EuclidEngineArea
+    /// @return A new EuclidEngineArea attached on a new GameObject
     public static EuclidEngineArea Instantiate(Vector3 position, Quaternion rotation, Transform parent)
     { return EuclidEngineArea.Instantiate(new Vector3(1f, 1f, 1f), new Vector3(1f, 1f, 1f), new Vector3(0f, 0f, 0f), position, rotation, parent); }
 
+    /// @brief Construct a new EuclidEngineArea
+    /// @param areaSize The visual size of the new EuclidEngineArea
+    /// @param internalSize The traversal size of the new EuclidEngineArea
+    /// @param position World position of the new EuclidEngineArea
+    /// @param rotation World rotation of the new EuclidEngineArea
+    /// @return A new EuclidEngineArea attached on a new GameObject
     public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 position, Quaternion rotation)
     { return EuclidEngineArea.Instantiate(areaSize, internalSize, new Vector3(0f, 0f, 0f), position, rotation); }
+    /// @brief Construct a new default EuclidEngineArea
+    /// @param position Local position of the new EuclidEngineArea
+    /// @param rotation Local rotation of the new EuclidEngineArea
+    /// @param parent The parent of the new EuclidEngineArea
+    /// @return A new EuclidEngineArea attached on a new GameObject
     public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 position, Quaternion rotation, Transform parent)
     { return EuclidEngineArea.Instantiate(areaSize, internalSize, new Vector3(0f, 0f, 0f), position, rotation, parent); }
 
+    /// @brief Construct a new default EuclidEngineArea
+    /// @param position World position of the new EuclidEngineArea
+    /// @param rotation World rotation of the new EuclidEngineArea
+    /// @return A new EuclidEngineArea attached on a new GameObject
     public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 transitionSize, Vector3 position, Quaternion rotation)
     { return EuclidEngineArea.Instantiate(areaSize, internalSize, transitionSize, position, rotation, null); }
 
+    /// @brief Construct a new default EuclidEngineArea
+    /// @param position Local position of the new EuclidEngineArea
+    /// @param rotation Local rotation of the new EuclidEngineArea
+    /// @param parent The parent of the new EuclidEngineArea
+    /// @return A new EuclidEngineArea attached on a new GameObject
     public static EuclidEngineArea Instantiate(Vector3 areaSize, Vector3 internalSize, Vector3 transitionSize, Vector3 position, Quaternion rotation, Transform parent)
     {
         GameObject go = new GameObject(typeof(EuclidEngineArea).ToString());
@@ -161,6 +200,7 @@ public class EuclidEngineArea : MonoBehaviour
     /*                                              */
     /************************************************/
 
+    /// @brief The external size of the EuclidEngineArea, without the transition area.
     public Vector3 areaSize
     {
         get { return _size; }
@@ -173,6 +213,7 @@ public class EuclidEngineArea : MonoBehaviour
         }
     }
 
+    /// The internal size of the EuclidEngineArea
     public Vector3 internalSize
     {
         get { return _internalSize; }
@@ -184,6 +225,7 @@ public class EuclidEngineArea : MonoBehaviour
         }
     }
 
+    /// @brief The size of the transition area around the EuclidEngineArea. This size is applied as is to both side the the Area.
     public Vector3 transitionSize
     {
         get { return _transitSize; }
@@ -196,13 +238,21 @@ public class EuclidEngineArea : MonoBehaviour
         }
     }
 
+    /// @brief The total size of the EuclidEngineArea, including the transition area.
     public Vector3 size
     {
         get { return _size + 2 * _transitSize; }
     }
 
+    /// @brief Set the external and internal size of the EuclidEngineArea
+    /// @param areaSize The external size, without the transition area
+    /// @param internalSize The internal size, fitting in the area
     public void SetSize(Vector3 areaSize, Vector3 internalSize)
     { SetSize(areaSize, internalSize, _transitSize); }
+    /// @brief Set the external, internal size and the transition area of the EuclidEngineArea
+    /// @param areaSize The external size, without the transition area
+    /// @param internalSize The internal size, fitting in the area
+    /// @param transitionSize The size of the transition area, which is apply on both side
     public void SetSize(Vector3 areaSize, Vector3 internalSize, Vector3 transitionSize)
     {
         if (areaSize.x <= 0 || areaSize.y <= 0 || areaSize.z <= 0)
