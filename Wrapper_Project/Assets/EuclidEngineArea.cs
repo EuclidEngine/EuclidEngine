@@ -59,10 +59,9 @@ public class EuclidEngineArea : MonoBehaviour
     private BoxCollider _collider;
 
     // Area variables
-    private Vector3 _size = new Vector3(1, 1, 1);
-    private Vector3 _internalSize = new Vector3(1, 1, 1);
-    private Vector3 _transitSize = new Vector3(0, 0, 0);
-
+    [SerializeField] [Tooltip("Size")] private Vector3 _size = new Vector3(1, 1, 1);
+    [SerializeField] [Tooltip("Internal size")] private Vector3 _internalSize = new Vector3(1, 1, 1);
+    [SerializeField] [Tooltip("Transit size")] private Vector3 _transitSize = new Vector3(0, 0, 0);
 
     /************************************************/
     /*                                              */
