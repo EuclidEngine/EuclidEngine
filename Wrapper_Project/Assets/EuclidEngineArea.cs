@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+[AddComponentMenu("Euclid Engine/Area")]
 [RequireComponent(typeof(BoxCollider), typeof(Rigidbody))]
 
 /// @brief The Non-Euclidean Area (NEA) object, deserved by Euclid Engine
@@ -129,12 +130,12 @@ public class EuclidEngineArea : MonoBehaviour
         EEAreaUpdate(_area);
     }
 
-
     /************************************************/
     /*                                              */
     /*                 Constructors                 */
     /*                                              */
     /************************************************/
+
 
     /// @brief Construct a new default EuclidEngineArea
     /// @param position World position of the new EuclidEngineArea
