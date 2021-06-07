@@ -193,7 +193,6 @@ public class EuclidEngineArea : MonoBehaviour
         return area;
     }
 
-
     /************************************************/
     /*                                              */
     /*              C# public functions             */
@@ -267,6 +266,10 @@ public class EuclidEngineArea : MonoBehaviour
         EEAreaSetSize(_area, (double)_size.x, (double)_size.z, (double)_size.y);
         EEAreaSetInternalSize(_area, (double)_internalSize.x, (double)_internalSize.z, (double)_internalSize.y);
         EEAreaSetTransitAreaSize(_area, (double)_transitSize.x, (double)_transitSize.z, (double)_transitSize.y);
+
+        if (_collider == null)
+            _collider = GetComponent<BoxCollider>();
+
         _collider.size = _size + 2 * _transitSize;
     }
 
