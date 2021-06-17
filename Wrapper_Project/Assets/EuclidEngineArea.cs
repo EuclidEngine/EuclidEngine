@@ -18,6 +18,8 @@ using System.Runtime.InteropServices;
 /// Every object inside a NEA are anchored relatively to their internal position and the center of the area. 
 ///
 /// By default, an EuclidEngineArea as an external and internal size of 1, with no transition area.
+///
+/// @ingroup cs
 public class EuclidEngineArea : MonoBehaviour
 {
     /************************************************/
