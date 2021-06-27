@@ -191,6 +191,7 @@ public class EuclidEngineArea : MonoBehaviour
         go.transform.localRotation = rotation;
 
         EuclidEngineArea area = go.AddComponent<EuclidEngineArea>();
+        area.Reset();
         area.SetSize(areaSize, internalSize, transitionSize);
 
         return area;
