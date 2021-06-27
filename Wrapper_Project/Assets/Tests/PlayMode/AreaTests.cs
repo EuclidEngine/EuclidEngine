@@ -38,6 +38,7 @@ namespace Tests
                                                                      new Vector3(1, 1, 1),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
+            TestArea.transform.position = new Vector3(0,0,0);
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(0,0,0);
             yield return null;
@@ -52,6 +53,7 @@ namespace Tests
                                                                      new Vector3(20, 20, 20),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
+            TestArea.transform.position = new Vector3(0,0,0);
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(0,0,0);
             yield return null;
@@ -66,6 +68,7 @@ namespace Tests
                                                                      new Vector3(10, 10, 10),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
+            TestArea.transform.position = new Vector3(0,0,0);
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(0,0,0);
             yield return null;
@@ -80,6 +83,7 @@ namespace Tests
                                                                      new Vector3(20, 10, 5),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
+            TestArea.transform.position = new Vector3(0,0,0);
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(0,0,0);
             yield return null;
@@ -94,6 +98,7 @@ namespace Tests
                                                                      new Vector3(20, 20, 20),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
+            TestArea.transform.position = new Vector3(0,0,0);
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(100,100,100);
             yield return null;
@@ -109,6 +114,7 @@ namespace Tests
                                                                      new Vector3(5, 5, 5),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
+            TestArea.transform.position = new Vector3(0,0,0);
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(12.5f,12.5f,12.5f);
             yield return null;
@@ -125,6 +131,7 @@ namespace Tests
                                                                      new Vector3(5, 5, 5),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
+            TestArea.transform.position = new Vector3(0,0,0);
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             
             cube.transform.position = new Vector3(100,100,100);
@@ -135,7 +142,7 @@ namespace Tests
             yield return null;
             Assert.AreEqual(new Vector3(1.5f,1.5f,1.5f), cube.transform.lossyScale);
 
-            cube.transform.position = new Vector3(20,20,20);
+            cube.transform.position = new Vector3(0, 0, 0);
             yield return null;
             Assert.AreEqual(new Vector3(2, 2, 2), cube.transform.lossyScale);
         }
