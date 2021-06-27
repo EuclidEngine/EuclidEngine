@@ -116,7 +116,6 @@ public class EuclidEngineArea : MonoBehaviour
     //Called on collision
     void OnTriggerEnter(Collider c)
     {
-        print("trigger");
 ;       int id = c.GetInstanceID();
         EEAreaAddObjectInside(_area, id, (IntPtr)id);
     }
