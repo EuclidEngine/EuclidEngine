@@ -116,14 +116,16 @@ public class EuclidEngineArea : MonoBehaviour
     //Called on collision
     void OnTriggerEnter(Collider c)
     {
-;       int id = c.GetInstanceID();
+        int id = c.GetInstanceID();
         EEAreaAddObjectInside(_area, id, (IntPtr)id);
+        c.gameObject.AddComponent<EuclidEngineObject>();
     }
 
     //Called at the end of collision
     void OnTriggerExit(Collider c)
     {
         EEAreaRemoveObjectInside(_area, c.GetInstanceID());
+        Destroy(c.gameObject.GetComponent<EuclidEngineObject>());
     }
 
     //Called every frame
