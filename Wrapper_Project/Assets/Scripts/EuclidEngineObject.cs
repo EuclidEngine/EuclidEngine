@@ -45,9 +45,13 @@ public class EuclidEngineObject : MonoBehaviour
     {
     }
 
+    GameObject EEObjectContainer;
     //Called on launch
     void Awake()
     {
+        EEObjectContainer = new GameObject("EEObjectContainer[" + gameObject.name + "]");
+        EEObjectContainer.transform.SetParent(gameObject.transform.parent);
+        gameObject.transform.SetParent(EEObjectContainer.transform);
     }
 
     //Called on launch, after Awake
@@ -59,6 +63,8 @@ public class EuclidEngineObject : MonoBehaviour
     //Called at end (of object or scene)
     void OnDestroy()
     {
+        gameObject.transform.SetParent(EEObjectContainer.transform.parent);
+        Destroy(EEObjectContainer);
     }
 
     //Called on collision
