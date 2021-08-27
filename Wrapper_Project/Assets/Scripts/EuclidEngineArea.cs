@@ -22,6 +22,7 @@ using System.Runtime.InteropServices;
 /// @ingroup cs
 public class EuclidEngineArea : MonoBehaviour
 {
+#region C++ functions
     /************************************************/
     /*                                              */
     /*           C++ functions prototype            */
@@ -42,9 +43,11 @@ public class EuclidEngineArea : MonoBehaviour
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetTransitAreaSize(IntPtr area, double sizeX, double sizeY, double sizeZ);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaAddObjectInside(IntPtr area, int objectId, IntPtr obj);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaRemoveObjectInside(IntPtr area, int objectId);
+    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaGetTransformMatrix(IntPtr area, Vector3 dir, out Matrix4x4 ret);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaUpdate(IntPtr area);
 
-
+#endregion
+#region Variables
     /************************************************/
     /*                                              */
     /*                   Variables                  */
@@ -60,12 +63,21 @@ public class EuclidEngineArea : MonoBehaviour
 
     // C# Area object
     private BoxCollider _collider;
+    private Camera _camera;
+    private EEAreaPlane _planeRight;
+    private EEAreaPlane _planeLeft;
+    private EEAreaPlane _planeTop;
+    private EEAreaPlane _planeBottom;
+    private EEAreaPlane _planeFront;
+    private EEAreaPlane _planeBack;
 
     // Area variables
     [SerializeField] [Tooltip("Size")] private Vector3 _size = new Vector3(1, 1, 1);
     [SerializeField] [Tooltip("Internal size")] private Vector3 _internalSize = new Vector3(1, 1, 1);
     [SerializeField] [Tooltip("Transit size")] private Vector3 _transitSize = new Vector3(0, 0, 0);
 
+#endregion
+#region Unity events
     /************************************************/
     /*                                              */
     /*             Unity events handler             */
@@ -105,6 +117,17 @@ public class EuclidEngineArea : MonoBehaviour
     {
         _collider = GetComponent<BoxCollider>();
         _collider.size = _size + 2 * _transitSize;
+
+        _camera = Instantiate(new GameObject(), transform).AddComponent<Camera>();
+        _camera.gameObject.name = "Camera";
+        _camera.cullingMask &= (int)(0xFFFFFFFF ^ (1 << LayerMask.NameToLayer("toto")));
+        _camera.targetTexture = new RenderTexture(Screen.width, Screen.height, 0);
+
+        GameObject planePrefab = Resources.Load("Prefab/New Sprite") as GameObject;
+        _planeBack = Instantiate(planePrefab, new Vector3(0, _size.y / 2, -_size.z / 2f), Quaternion.FromToRotation(planePrefab.transform.forward, transform.forward), transform)
+                        .GetComponent<EEAreaPlane>();
+        _planeBack.gameObject.name = "Plane Back";
+        _planeBack.camera = _camera;
     }
 
     //Called at end (of object or scene)
@@ -132,8 +155,11 @@ public class EuclidEngineArea : MonoBehaviour
     void Update()
     {
         EEAreaUpdate(_area);
+        UpdatePlanes();
     }
 
+#endregion
+#region Constructors
     /************************************************/
     /*                                              */
     /*                 Constructors                 */
@@ -198,9 +224,11 @@ public class EuclidEngineArea : MonoBehaviour
         return area;
     }
 
+#endregion
+#region Public properties
     /************************************************/
     /*                                              */
-    /*              C# public functions             */
+    /*              C# public properties            */
     /*                                              */
     /************************************************/
 
@@ -248,6 +276,14 @@ public class EuclidEngineArea : MonoBehaviour
         get { return _size + 2 * _transitSize; }
     }
 
+#endregion
+#region Public methods
+    /************************************************/
+    /*                                              */
+    /*              C# public functions             */
+    /*                                              */
+    /************************************************/
+
     /// @brief Set the external and internal size of the EuclidEngineArea
     /// @param areaSize The external size, without the transition area
     /// @param internalSize The internal size, fitting in the area
@@ -278,14 +314,46 @@ public class EuclidEngineArea : MonoBehaviour
         _collider.size = _size + 2 * _transitSize;
     }
 
-
+#endregion
+#region Private methods
     /************************************************/
     /*                                              */
     /*            C# private functions              */
     /*                                              */
     /************************************************/
 
+    private void UpdatePlanes()
+    {
+        _camera.transform.position = Camera.main.transform.position;
+        _camera.transform.rotation = Camera.main.transform.rotation;
 
+        Vector4 tmp;
+        Matrix4x4 spaceToScreen = GL.GetGPUProjectionMatrix(_camera.projectionMatrix, true) * _camera.worldToCameraMatrix;
+        Vector3 vertexLTF = transform.TransformPoint(new Vector3(-_size.x / 2, _size.y, _size.z / 2));
+                tmp = spaceToScreen * new Vector4(vertexLTF.x, vertexLTF.y, vertexLTF.z, 1);
+                vertexLTF = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
+        Vector3 vertexRBF = transform.TransformPoint(new Vector3(_size.x / 2, 0, _size.z / 2));
+                tmp = spaceToScreen * new Vector4(vertexRBF.x, vertexRBF.y, vertexRBF.z, 1);
+                vertexRBF = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);;
+        Vector3 vertexLBB = transform.TransformPoint(new Vector3(-_size.x / 2, 0, -_size.z / 2));
+                tmp = spaceToScreen * new Vector4(vertexLBB.x, vertexLBB.y, vertexLBB.z, 1);
+                vertexLBB = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
+        Vector3 vertexRTB = transform.TransformPoint(new Vector3(_size.x / 2, _size.y, -_size.z / 2));
+                tmp = spaceToScreen * new Vector4(vertexRTB.x, vertexRTB.y, vertexRTB.z, 1);
+                vertexRTB = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);;
+
+        Matrix4x4 transformMatrix;
+        EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
+        _planeBack.rect = new Rect(vertexLBB.x, vertexRTB.y, vertexRTB.x-vertexLBB.x, vertexLBB.y-vertexRTB.y);
+        _planeBack.size = new Vector2(_size.x, _size.y);
+        _camera.worldToCameraMatrix = _camera.worldToCameraMatrix * transformMatrix;
+        _planeBack.UpdatePlane();
+
+        _camera.ResetWorldToCameraMatrix();
+    }
+
+#endregion
+#region C++ callbacks
     /************************************************/
     /*                                              */
     /*                 C++ callbacks                */
@@ -323,4 +391,5 @@ public class EuclidEngineArea : MonoBehaviour
         Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         collider.transform.localScale = new Vector3((float)x, (float)z, (float)y);
     }
+#endregion
 }
