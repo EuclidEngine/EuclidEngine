@@ -34,6 +34,8 @@ public class EEAreaPlane : MonoBehaviour
 
         camera.Render();
 
+        rect.width  = Math.Min(rect.width,  Screen.width  - Math.Abs((int)rect.x));
+        rect.height = Math.Min(rect.height, Screen.height - Math.Abs((int)rect.y));
         texture2D.Resize((int)rect.width, (int)rect.height);
         texture2D.ReadPixels(rect, 0, 0, false);
         texture2D.Apply();
