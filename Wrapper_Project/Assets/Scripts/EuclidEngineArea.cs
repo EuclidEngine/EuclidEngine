@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 
 using System;
@@ -126,8 +126,32 @@ public class EuclidEngineArea : MonoBehaviour
         GameObject planePrefab = Resources.Load("Prefab/New Sprite") as GameObject;
         _planeBack = Instantiate(planePrefab, new Vector3(0, _size.y / 2, -_size.z / 2f), Quaternion.FromToRotation(planePrefab.transform.forward, transform.forward), transform)
                         .GetComponent<EEAreaPlane>();
+        _planeFront = Instantiate(planePrefab, new Vector3(0, _size.y / 2, _size.z / 2f), Quaternion.FromToRotation(-planePrefab.transform.forward, transform.forward), transform)
+                        .GetComponent<EEAreaPlane>();
+        _planeRight = Instantiate(planePrefab, new Vector3(_size.x / 2f, _size.y / 2, 0), Quaternion.FromToRotation(-planePrefab.transform.right, transform.forward), transform)
+                        .GetComponent<EEAreaPlane>();
+        _planeLeft = Instantiate(planePrefab, new Vector3(-_size.x / 2f, _size.y / 2, 0), Quaternion.FromToRotation(planePrefab.transform.right, transform.forward), transform)
+                        .GetComponent<EEAreaPlane>();
+        _planeTop = Instantiate(planePrefab, new Vector3(0, _size.y, 0), Quaternion.FromToRotation(-planePrefab.transform.up, transform.forward), transform)
+                        .GetComponent<EEAreaPlane>();
+        _planeBottom = Instantiate(planePrefab, new Vector3(0, 0, 0), Quaternion.FromToRotation(planePrefab.transform.up, transform.forward), transform)
+                        .GetComponent<EEAreaPlane>();
+
+        //set game object name for each plane
         _planeBack.gameObject.name = "Plane Back";
+        _planeRight.gameObject.name = "Plane Right";
+        _planeLeft.gameObject.name = "Plane Left";
+        _planeTop.gameObject.name = "Plane Top";
+        _planeBottom.gameObject.name = "Plane Bottom";
+        _planeFront.gameObject.name = "Plane Front";
+
+        //set camera for each plane
         _planeBack.camera = _camera;
+        _planeRight.camera = _camera;
+        _planeLeft.camera = _camera;
+        _planeTop.camera = _camera;
+        _planeBottom.camera = _camera;
+        _planeFront.camera = _camera;
     }
 
     //Called at end (of object or scene)
@@ -344,11 +368,34 @@ public class EuclidEngineArea : MonoBehaviour
 
         Matrix4x4 transformMatrix;
         EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
-        _planeBack.rect = new Rect(vertexLBB.x, vertexRTB.y, vertexRTB.x-vertexLBB.x, vertexLBB.y-vertexRTB.y);
-        _planeBack.size = new Vector2(_size.x, _size.y);
-        _camera.worldToCameraMatrix = _camera.worldToCameraMatrix * transformMatrix;
-        _planeBack.UpdatePlane();
 
+        //set plane rect
+        _planeBack.rect = new Rect(vertexLBB.x, vertexRTB.y, vertexRTB.x-vertexLBB.x, vertexLBB.y-vertexRTB.y);
+        _planeFront.rect = new Rect(vertexRBF.x, vertexLTF.y, vertexRBF.x - vertexLTF.x, vertexRBF.y - vertexLTF.y);
+        _planeLeft.rect = new Rect(vertexLBB.x, vertexLTF.y, vertexLBB.x - vertexLTF.x, vertexLBB.y - vertexLTF.y);
+        _planeRight.rect = new Rect(vertexRBF.x, vertexRTB.y, vertexRTB.x - vertexRBF.x, vertexRBF.y - vertexRTB.y);
+        //TODO
+        _planeTop.rect = new Rect(vertexLTF.x, vertexRTB.y, vertexRTB.x - vertexLTF.x, vertexLTF.y - vertexRTB.y);
+        _planeBottom.rect = new Rect(vertexRBF.x, vertexRBF.y, vertexRTB.x - vertexLBB.x, vertexLBB.y - vertexRTB.y);
+
+        //set plane size
+        _planeBack.size = new Vector2(_size.x, _size.y);
+        _planeFront.size = new Vector2(_size.x, _size.y);
+        _planeRight.size = new Vector2(_size.z, _size.y);
+        _planeLeft.size = new Vector2(_size.z, _size.y);
+        _planeTop.size = new Vector2(_size.x, _size.z);
+        _planeBottom.size = new Vector2(_size.x, _size.z);
+
+        _camera.worldToCameraMatrix = _camera.worldToCameraMatrix * transformMatrix;
+        //update each plan with new camera matrix
+        _planeBack.UpdatePlane();
+        _planeFront.UpdatePlane();
+        _planeRight.UpdatePlane();
+        _planeLeft.UpdatePlane();
+        _planeTop.UpdatePlane();
+        _planeBottom.UpdatePlane();
+
+        //reset cam
         _camera.ResetWorldToCameraMatrix();
     }
 
