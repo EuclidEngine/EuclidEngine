@@ -6,8 +6,12 @@ using UnityEngine;
 public class EEAreaPlane : MonoBehaviour
 {
     new public Camera camera;
-    public Rect rect;
     public Vector2 size;
+    // Relativ to the inside of the square
+    public Vector2 vertex00;
+    public Vector2 vertex01;
+    public Vector2 vertex10;
+    public Vector2 vertex11;
 
     private Texture2D texture2D;
     new private SpriteRenderer renderer;
@@ -34,10 +38,14 @@ public class EEAreaPlane : MonoBehaviour
 
         camera.Render();
 
-        rect.width  = Math.Min(rect.width,  Screen.width  - Math.Abs((int)rect.x));
-        rect.height = Math.Min(rect.height, Screen.height - Math.Abs((int)rect.y));
+        float minX = Math.Min(Math.Min(vertex00.x, vertex01.x), Math.Min(vertex10.x, vertex11.x));
+        float minY = Math.Min(Math.Min(vertex00.y, vertex01.y), Math.Min(vertex10.y, vertex11.y));
+        float maxX = Math.Max(Math.Max(vertex00.x, vertex01.x), Math.Max(vertex10.x, vertex11.x));
+        float maxY = Math.Max(Math.Max(vertex00.y, vertex01.y), Math.Max(vertex10.y, vertex11.y));
+        Rect rect = new Rect(minX, minY, maxX-minX, maxY-minY);
+        Rect readRect = new Rect(minX, minY, Math.Min(rect.width, Screen.width-minX), maxY - (minY < 0 ? 0 : minY));
         texture2D.Resize((int)rect.width, (int)rect.height);
-        texture2D.ReadPixels(rect, 0, 0, false);
+        texture2D.ReadPixels(readRect, (int)(minX < 0 ? -minX : 0), (int)(maxY > Screen.height ? maxY - Screen.height : 0), false);
         texture2D.Apply();
         renderer.size = new Vector2(rect.width / 100f, rect.height / 100f);
         transform.localScale = new Vector3(size.x * 100f / rect.width, size.y * 100f / rect.height, transform.localScale.z);
