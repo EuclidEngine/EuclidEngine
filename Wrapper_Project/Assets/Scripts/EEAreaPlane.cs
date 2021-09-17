@@ -33,15 +33,18 @@ public class EEAreaPlane : MonoBehaviour
 
     public void UpdatePlane()
     {
+        float minX = Math.Min(Math.Min(vertex00.x, vertex01.x), Math.Min(vertex10.x, vertex11.x));
+        float minY = Math.Min(Math.Min(vertex00.y, vertex01.y), Math.Min(vertex10.y, vertex11.y));
+        float maxX = Math.Max(Math.Max(vertex00.x, vertex01.x), Math.Max(vertex10.x, vertex11.x));
+        float maxY = Math.Max(Math.Max(vertex00.y, vertex01.y), Math.Max(vertex10.y, vertex11.y));
+        if (maxX <= 0 || maxY <= 0 || minX >= Screen.width || minY >= Screen.height)
+            return;
+
         RenderTexture currentActiveRT = RenderTexture.active;
         RenderTexture.active = camera.targetTexture;
 
         camera.Render();
 
-        float minX = Math.Min(Math.Min(vertex00.x, vertex01.x), Math.Min(vertex10.x, vertex11.x));
-        float minY = Math.Min(Math.Min(vertex00.y, vertex01.y), Math.Min(vertex10.y, vertex11.y));
-        float maxX = Math.Max(Math.Max(vertex00.x, vertex01.x), Math.Max(vertex10.x, vertex11.x));
-        float maxY = Math.Max(Math.Max(vertex00.y, vertex01.y), Math.Max(vertex10.y, vertex11.y));
         Rect rect = new Rect(minX, minY, maxX-minX, maxY-minY);
         Rect readRect = new Rect(minX, minY, Math.Min(rect.width, Screen.width-minX), maxY - (minY < 0 ? 0 : minY));
         texture2D.Resize((int)rect.width, (int)rect.height);

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 using System;
@@ -38,6 +38,7 @@ public class EuclidEngineArea : MonoBehaviour
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetSizeGetterCallback(IntPtr area, SizeGetterFn callback);
         private delegate void ScalerFn(IntPtr go, double x, double y, double z);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetScalerCallback(IntPtr area, ScalerFn callback);
+    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetCameraPosition(IntPtr area, Vector3 position);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetSize(IntPtr area, double pExternX, double pExternY, double pExternZ);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetInternalSize(IntPtr area, double pInternX, double pInternY, double pInternZ);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetTransitAreaSize(IntPtr area, double sizeX, double sizeY, double sizeZ);
@@ -350,6 +351,7 @@ public class EuclidEngineArea : MonoBehaviour
     {
         _camera.transform.position = Camera.main.transform.position;
         _camera.transform.rotation = Camera.main.transform.rotation;
+        EEAreaSetCameraPosition(_camera.transform.position);
 
         Vector4 tmp;
         Matrix4x4 spaceToScreen = GL.GetGPUProjectionMatrix(_camera.projectionMatrix, true) * _camera.worldToCameraMatrix;
@@ -403,16 +405,16 @@ public class EuclidEngineArea : MonoBehaviour
         EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
         _camera.worldToCameraMatrix = worldToCam * transformMatrix;
         _planeBack.UpdatePlane();
-        transformMatrix = Matrix4x4.identity;//EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
+        EEAreaGetTransformMatrix(_area, -transform.forward, out transformMatrix);
         _camera.worldToCameraMatrix = worldToCam * transformMatrix;
         _planeFront.UpdatePlane();
-        transformMatrix = Matrix4x4.identity;//EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
+        EEAreaGetTransformMatrix(_area, -transform.right, out transformMatrix);
         _camera.worldToCameraMatrix = worldToCam * transformMatrix;
         _planeRight.UpdatePlane();
         EEAreaGetTransformMatrix(_area, transform.right, out transformMatrix);
         _camera.worldToCameraMatrix = worldToCam * transformMatrix;
         _planeLeft.UpdatePlane();
-        transformMatrix = Matrix4x4.identity;//EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
+        EEAreaGetTransformMatrix(_area, -transform.up, out transformMatrix);
         _camera.worldToCameraMatrix = worldToCam * transformMatrix;
         _planeTop.UpdatePlane();
         EEAreaGetTransformMatrix(_area, transform.up, out transformMatrix);
