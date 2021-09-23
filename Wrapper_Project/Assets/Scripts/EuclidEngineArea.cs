@@ -181,6 +181,16 @@ public class EuclidEngineArea : MonoBehaviour
     {
         EEAreaUpdate(_area);
         UpdatePlanes();
+        
+        EuclidEngineCamera eecam = Array.Find(Camera.main.GetComponents<EuclidEngineCamera>(), camera => camera.area == _area);
+        if (_collider.bounds.Contains(Camera.main.transform.position)) {
+            if (!eecam) {
+                eecam = Camera.main.gameObject.AddComponent<EuclidEngineCamera>();
+                eecam.area = _area;
+            }
+        } else if (eecam) {
+            Destroy(eecam);
+        }
     }
 
 #endregion
@@ -351,78 +361,30 @@ public class EuclidEngineArea : MonoBehaviour
     {
         _camera.transform.position = Camera.main.transform.position;
         _camera.transform.rotation = Camera.main.transform.rotation;
-        EEAreaSetCameraPosition(_camera.transform.position);
-
-        Vector4 tmp;
-        Matrix4x4 spaceToScreen = GL.GetGPUProjectionMatrix(_camera.projectionMatrix, true) * _camera.worldToCameraMatrix;
-
-        Vector3 vertex000 = transform.TransformPoint(new Vector3(-_size.x / 2, 0, -_size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex000.x, vertex000.y, vertex000.z, 1);
-                vertex000 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-        Vector3 vertex001 = transform.TransformPoint(new Vector3(-_size.x / 2, 0, _size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex001.x, vertex001.y, vertex001.z, 1);
-                vertex001 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-        Vector3 vertex010 = transform.TransformPoint(new Vector3(-_size.x / 2, _size.y, -_size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex010.x, vertex010.y, vertex010.z, 1);
-                vertex010 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-        Vector3 vertex011 = transform.TransformPoint(new Vector3(-_size.x / 2, _size.y, _size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex011.x, vertex011.y, vertex011.z, 1);
-                vertex011 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-        Vector3 vertex100 = transform.TransformPoint(new Vector3(_size.x / 2, 0, -_size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex100.x, vertex100.y, vertex100.z, 1);
-                vertex100 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-        Vector3 vertex101 = transform.TransformPoint(new Vector3(_size.x / 2, 0, _size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex101.x, vertex101.y, vertex101.z, 1);
-                vertex101 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-        Vector3 vertex110 = transform.TransformPoint(new Vector3(_size.x / 2, _size.y, -_size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex110.x, vertex110.y, vertex110.z, 1);
-                vertex110 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-        Vector3 vertex111 = transform.TransformPoint(new Vector3(_size.x / 2, _size.y, _size.z / 2));
-                tmp = spaceToScreen * new Vector4(vertex111.x, vertex111.y, vertex111.z, 1);
-                vertex111 = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
-
-        //set plane vertex
-        _planeFront.vertex00 =  vertex101;  _planeFront.vertex01 =  vertex111;  _planeFront.vertex10 =  vertex001;  _planeFront.vertex11 =  vertex011;
-        _planeBack.vertex00 =   vertex000;  _planeBack.vertex01 =   vertex010;  _planeBack.vertex10 =   vertex100;  _planeBack.vertex11 =   vertex110;
-        _planeRight.vertex00 =  vertex101;  _planeRight.vertex01 =  vertex111;  _planeRight.vertex10 =  vertex100;  _planeRight.vertex11 =  vertex110;
-        _planeLeft.vertex00 =   vertex000;  _planeLeft.vertex01 =   vertex010;  _planeLeft.vertex10 =   vertex001;  _planeLeft.vertex11 =   vertex011;
-        _planeTop.vertex00 =    vertex011;  _planeTop.vertex01 =    vertex010;  _planeTop.vertex10 =    vertex111;  _planeTop.vertex11 =    vertex110;
-        _planeBottom.vertex00 = vertex000;  _planeBottom.vertex01 = vertex001;  _planeBottom.vertex10 = vertex100;  _planeBottom.vertex11 = vertex101;
+        EEAreaSetCameraPosition(_area, _camera.transform.position);
 
         //set plane size
-        _planeBack.size = new Vector2(_size.x, _size.y);
-        _planeFront.size = new Vector2(_size.x, _size.y);
-        _planeRight.size = new Vector2(_size.z, _size.y);
-        _planeLeft.size = new Vector2(_size.z, _size.y);
-        _planeTop.size = new Vector2(_size.x, _size.z);
+        _planeBack.size =   new Vector2(_size.x, _size.y);
+        _planeFront.size =  new Vector2(_size.x, _size.y);
+        _planeRight.size =  new Vector2(_size.z, _size.y);
+        _planeLeft.size =   new Vector2(_size.z, _size.y);
+        _planeTop.size =    new Vector2(_size.x, _size.z);
         _planeBottom.size = new Vector2(_size.x, _size.z);
 
-
         //update each plan with new camera matrix
-        Matrix4x4 worldToCam = _camera.worldToCameraMatrix;
-        Matrix4x4 transformMatrix = Matrix4x4.identity;
-
+        Matrix4x4 transformMatrix;
         EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
-        _camera.worldToCameraMatrix = worldToCam * transformMatrix;
-        _planeBack.UpdatePlane();
+        _planeBack.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
         EEAreaGetTransformMatrix(_area, -transform.forward, out transformMatrix);
-        _camera.worldToCameraMatrix = worldToCam * transformMatrix;
-        _planeFront.UpdatePlane();
+        _planeFront.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
         EEAreaGetTransformMatrix(_area, -transform.right, out transformMatrix);
-        _camera.worldToCameraMatrix = worldToCam * transformMatrix;
-        _planeRight.UpdatePlane();
+        _planeRight.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
         EEAreaGetTransformMatrix(_area, transform.right, out transformMatrix);
-        _camera.worldToCameraMatrix = worldToCam * transformMatrix;
-        _planeLeft.UpdatePlane();
+        _planeLeft.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
         EEAreaGetTransformMatrix(_area, -transform.up, out transformMatrix);
-        _camera.worldToCameraMatrix = worldToCam * transformMatrix;
-        _planeTop.UpdatePlane();
+        _planeTop.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
         EEAreaGetTransformMatrix(_area, transform.up, out transformMatrix);
-        _camera.worldToCameraMatrix = worldToCam * transformMatrix;
-        _planeBottom.UpdatePlane();
-
-        //reset cam
-        _camera.ResetWorldToCameraMatrix();
+        _planeBottom.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
     }
 
 #endregion
