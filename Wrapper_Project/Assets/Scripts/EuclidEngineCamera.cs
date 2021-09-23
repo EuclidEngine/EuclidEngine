@@ -14,11 +14,11 @@ public class EuclidEngineCamera : MonoBehaviour
         _camera = GetComponent<Camera>();
     }
 
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaGetTransformMatrix(IntPtr area, Vector3 dir, out Matrix4x4 ret);
+    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaGetPlayerTransformMatrix(IntPtr area, out Matrix4x4 ret);
     void OnPreCull()
     {
         Matrix4x4 transformMatrix = Matrix4x4.identity;
-        EEAreaGetTransformMatrix(area, Vector3.one, out transformMatrix);
+        EEAreaGetPlayerTransformMatrix(area, out transformMatrix);
         _camera.worldToCameraMatrix *= transformMatrix;
     }
 

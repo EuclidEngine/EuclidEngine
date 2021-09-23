@@ -181,7 +181,7 @@ public class EuclidEngineArea : MonoBehaviour
     {
         EEAreaUpdate(_area);
         UpdatePlanes();
-        
+
         EuclidEngineCamera eecam = Array.Find(Camera.main.GetComponents<EuclidEngineCamera>(), camera => camera.area == _area);
         if (_collider.bounds.Contains(Camera.main.transform.position)) {
             if (!eecam) {
