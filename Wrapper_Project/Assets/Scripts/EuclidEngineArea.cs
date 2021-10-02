@@ -72,6 +72,9 @@ public class EuclidEngineArea : MonoBehaviour
     private EEAreaPlane _planeFront;
     private EEAreaPlane _planeBack;
 
+    // Used later to sort all plane by they distance with the camera
+    private List<KeyValuePair<EEAreaPlane, Vector3>> _sortAreaPlane = new List<KeyValuePair<EEAreaPlane, Vector3>>();
+
     // Area variables
     [SerializeField] [Tooltip("Size")] private Vector3 _size = new Vector3(1, 1, 1);
     [SerializeField] [Tooltip("Internal size")] private Vector3 _internalSize = new Vector3(1, 1, 1);
@@ -153,6 +156,14 @@ public class EuclidEngineArea : MonoBehaviour
         _planeTop.camera = _camera;
         _planeBottom.camera = _camera;
         _planeFront.camera = _camera;
+
+        //set sortAreaPlane
+        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeBack, transform.forward));
+        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeFront, -transform.forward));
+        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeRight, -transform.right));
+        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeLeft, transform.right));
+        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeTop, -transform.up));
+        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeBottom, transform.up));
     }
 
     //Called at end (of object or scene)
@@ -349,14 +360,13 @@ public class EuclidEngineArea : MonoBehaviour
         _collider.size = _size + 2 * _transitSize;
     }
 
-#endregion
-#region Private methods
+    #endregion
+    #region Private methods
     /************************************************/
     /*                                              */
     /*            C# private functions              */
     /*                                              */
     /************************************************/
-
     private void UpdatePlanes()
     {
         _camera.transform.position = Camera.main.transform.position;
@@ -373,6 +383,33 @@ public class EuclidEngineArea : MonoBehaviour
 
         //update each plan with new camera matrix
         Matrix4x4 transformMatrix;
+        List<KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float>> distances = new List<KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float>>();
+
+        for (short i = 0; i < 6; ++i) {
+            distances.Add(new KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float>(_sortAreaPlane[i],
+                Mathf.Sqrt(Mathf.Pow(_sortAreaPlane[i].Key.transform.position.x - _camera.transform.position.x, (float)2.0) +
+                Mathf.Pow(_sortAreaPlane[i].Key.transform.position.y - _camera.transform.position.y, (float)2.0) +
+                Mathf.Pow(_sortAreaPlane[i].Key.transform.position.z - _camera.transform.position.z, (float)2.0))));
+            _sortAreaPlane[i].Key.gameObject.layer |= LayerMask.NameToLayer("toto");
+        }
+
+        //sort distances
+        distances.Sort(delegate (KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float> a, KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float> b)
+        {
+            return a.Value.CompareTo(b.Value);
+        });
+
+        //Reverse array so it is descending
+        distances.Reverse();
+
+        foreach (var item in distances)
+        {
+            EEAreaGetTransformMatrix(_area, item.Key.Value, out transformMatrix);
+            item.Key.Key.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
+            item.Key.Key.gameObject.layer ^= LayerMask.NameToLayer("toto");
+        }
+
+        /*
         EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
         _planeBack.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
         EEAreaGetTransformMatrix(_area, -transform.forward, out transformMatrix);
@@ -385,6 +422,7 @@ public class EuclidEngineArea : MonoBehaviour
         _planeTop.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
         EEAreaGetTransformMatrix(_area, transform.up, out transformMatrix);
         _planeBottom.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
+        */
     }
 
 #endregion
