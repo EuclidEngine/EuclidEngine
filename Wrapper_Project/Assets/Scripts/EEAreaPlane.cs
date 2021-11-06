@@ -31,17 +31,17 @@ public class EEAreaPlane : MonoBehaviour
         Vector4 tmp;
         Matrix4x4 spaceToScreen = GL.GetGPUProjectionMatrix(camera.projectionMatrix, true) * worldToCameraMatrix * transformMatrix;
         Vector3 topRight = transform.position + transform.right * size.x / 2 + transform.up * size.y / 2;
-                tmp = spaceToScreen * new Vector4(topRight.x, topRight.y, topRight.z, 1);
-                topRight = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
+        tmp = spaceToScreen * new Vector4(topRight.x, topRight.y, topRight.z, 1);
+        topRight = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
         Vector3 topLeft = transform.position - transform.right * size.x / 2 + transform.up * size.y / 2;
-                tmp = spaceToScreen * new Vector4(topLeft.x, topLeft.y, topLeft.z, 1);
-                topLeft = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
+        tmp = spaceToScreen * new Vector4(topLeft.x, topLeft.y, topLeft.z, 1);
+        topLeft = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
         Vector3 bottomRight = transform.position + transform.right * size.x / 2 - transform.up * size.y / 2;
-                tmp = spaceToScreen * new Vector4(bottomRight.x, bottomRight.y, bottomRight.z, 1);
-                bottomRight = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
+        tmp = spaceToScreen * new Vector4(bottomRight.x, bottomRight.y, bottomRight.z, 1);
+        bottomRight = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
         Vector3 bottomLeft = transform.position - transform.right * size.x / 2 - transform.up * size.y / 2;
-                tmp = spaceToScreen * new Vector4(bottomLeft.x, bottomLeft.y, bottomLeft.z, 1);
-                bottomLeft = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
+        tmp = spaceToScreen * new Vector4(bottomLeft.x, bottomLeft.y, bottomLeft.z, 1);
+        bottomLeft = new Vector3((tmp.x / tmp.w + 1) / 2 * Screen.width, (tmp.y / tmp.w + 1) / 2 * Screen.height, tmp.z / tmp.w);
 
         float minX = Math.Min(Math.Min(topRight.x, topLeft.x), Math.Min(bottomRight.x, bottomLeft.x));
         float minY = Math.Min(Math.Min(topRight.y, topLeft.y), Math.Min(bottomRight.y, bottomLeft.y));
@@ -60,6 +60,14 @@ public class EEAreaPlane : MonoBehaviour
         Rect readRect = new Rect(minX, minY, Math.Min(rect.width, Screen.width-minX), maxY - (minY < 0 ? 0 : minY));
         texture2D.Resize((int)rect.width, (int)rect.height);
         texture2D.ReadPixels(readRect, (int)(minX < 0 ? -minX : 0), (int)(maxY > Screen.height ? maxY - Screen.height : 0), false);
+
+        for (int i = 0; i < renderer.sprite.vertices.Length; ++i)
+        {
+            var vert = renderer.sprite.vertices[i];
+            renderer.sprite.vertices[i].x = 1.0f;
+            Debug.LogWarning("i: " + i + ", " + vert.ToString());
+        }
+
         texture2D.Apply();
         renderer.size = new Vector2(rect.width / 100f, rect.height / 100f);
         transform.localScale = new Vector3(size.x * 100f / rect.width, size.y * 100f / rect.height, transform.localScale.z);
