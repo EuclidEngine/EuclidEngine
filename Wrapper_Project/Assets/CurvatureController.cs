@@ -22,9 +22,12 @@ public class CurvatureController : MonoBehaviour
 
         foreach (var renderer in renderers)
         {
-            if (renderer.sharedMaterial.HasProperty("_Curvature"))
+            foreach (var sMaterial in renderer.sharedMaterials)
             {
-                renderer.sharedMaterial.SetFloat("_Curvature", curv);
+                if (sMaterial && sMaterial.HasProperty("_Curvature"))
+                {
+                    sMaterial.SetFloat("_Curvature", curv);
+                }
             }
         }
     }
