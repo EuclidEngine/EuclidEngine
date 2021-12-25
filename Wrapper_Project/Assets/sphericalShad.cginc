@@ -1,6 +1,5 @@
 #include "UnityCG.cginc"
-// Upgrade NOTE: excluded shader from DX11; has structs without semantics (struct v2f members worldPos)
-#pragma exclude_renderers d3d11
+
 #define PI 3.14159265359
 
 struct v2g {
@@ -18,9 +17,10 @@ struct sphericalPos {
     float3 angles;
 };
 
-float4 _Origin;
-float _Radius;
-float _Height;
+float4 _Camera;
+float4 _TileOrigin;
+float4 _SphereOrigin;
+float _SphereRadius;
 int _Activate;
 
 float4 sphericalToCartesian(sphericalPos pos)
@@ -60,40 +60,93 @@ float4 worldToSpherical(float4 pos)
     return sphericalToCartesian(spos);
 }
 
-float4 stereographicalProjection(float4 pos)
+// https://en.wikipedia.org/wiki/Stereographic_projection#Generalizations
+float4 stereographicalProjection(float4 pos, float4 camera)
 {
-    if (pos.w == 1) {
+    // QP => P' (P'.w = {0,1})
+    // (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',{0,1})
+    // wq + k(wp-wq) = {0,1}
+    // k = ({0,1}-wq) / (wp-wq) = (wq-{0,1}) / (wq-wp)
+    if (pos.w == camera.w) {
         return float4(0,0,0,0);
     } else {
-        return float4(pos.xyz / (1 - pos.w), 1);
+        float coeff = (camera.w - 1) / (camera.w - pos.w);
+        return camera + coeff * (pos - camera);
     }
 }
 
+float4 reverseStereographicalProjection(float4 pos, float4 planeNormal, float4 sphereCenter, float sphereRadius)
+{
+    float4 projPoint = sphereCenter - normalize(planeNormal) * sphereRadius;
+    // QP => P' <==> (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',w')
+    // ||s-P'|| = rad <==> (xs-x')^2 + (ys-y')^2 + (zs-z')^2 + (ws-w')^2 = rad^2
+    // (xs-x')² = (xs - xq - k(xp-xq))² = (k(xp-xq) + (xq-xs))²
+    // (xs-x')² = k²(xp-xq)² + k*2(xp-xq)(xq-xs) + (xq-xs)²
+    float4 QP = pos - projPoint;
+    float4 SQ = projPoint - sphereCenter; // == normalize(planeNormal) * sphereRadius
+
+    // (Ak² + Bk + C) = rad^2
+    float A = dot(QP, QP); // == length(QP)^2
+    float B = 2 * dot(QP, SQ);
+    // C = length(SQ)^2 = radius^2 ==> C - rad^2 = 0
+
+    // det = B²-4AC
+    // k = (-B{+-}sqrt(det))/2A
+    // k = {0, -B/A}
+    float coeff = -B / A;
+    return projPoint + coeff * QP;
+}
+
+/*
+    Reverse orthographic projection relativ to chunk center
+    ~ Transformation position relativ to hypercenter of chunk ~
+    Stereographic projection relativ to camera
+*/
+
 v2g vertex(float4 vertex : POSITION, float4 normal : NORMAL)
 {
-    float4 worldPos = float4(mul(unity_ObjectToWorld, vertex).xyz / _Radius,1);
-    worldPos = worldToSpherical(worldPos);
-    worldPos = stereographicalProjection(worldPos.xwzy);
-    //if (length(worldPos.xyz) <= 1) {
-    //    worldPos.z = sqrt(1 - worldPos.x * worldPos.x - worldPos.y * worldPos.y);
-    //    //worldPos = float3(worldPos.xy / (1 - worldPos.z), 1 / _Radius);
-    //}
-    //float4 worldPos = mul(unity_ObjectToWorld, vertex) / _Radius;
-    //if (length(worldPos.xyz) <= 1) {
-    //    worldPos.w = -sqrt(1 - worldPos.x * worldPos.x - worldPos.y * worldPos.y - worldPos.z * worldPos.z);
-    //    //worldPos.y = 1 / worldPos.y;
-    //    worldPos = float4(worldPos.xyz / (1 - worldPos.w), 1 / _Radius);
-    //    //worldPos.y = 1 / worldPos.y;
-    //}
     v2g o;
-    o.worldPos = worldPos;
     o.normal = normal;
+    o.color = 1 * (normalize(vertex) * 0.8 + abs(normal) * 0.2);//normalize(sphericalPos) / 2 + 0.5;
+
+    // Vertex pos to Chunk pos
+    float4 wpos = mul(unity_ObjectToWorld, vertex);
+    // Chunk pos to Spherical pos
+    wpos = reverseStereographicalProjection(wpos, _TileOrigin - _SphereOrigin, _SphereOrigin, _SphereRadius);
+    o.worldPos = wpos;
+    // Spherical pos to Euclidean pos
+    float4 cameraPos = reverseStereographicalProjection(_Camera, _Camera - _SphereOrigin, _SphereOrigin, _SphereRadius);
+    wpos = stereographicalProjection(wpos, _SphereOrigin - (cameraPos - _SphereOrigin));
+
     if (_Activate)
-        o.pos = mul(UNITY_MATRIX_VP, float4(worldPos.xyz * _Radius, 1));
+        o.pos = mul(UNITY_MATRIX_VP, wpos);
     else
+        // Euclidean pos to Screen pos
         o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
-    o.color = normalize(vertex) * 0.8 + abs(normal) * 0.2;//normalize(sphericalPos) / 2 + 0.5;
     return o;
+    //float4 worldPos = float4(mul(unity_ObjectToWorld, vertex).xyz / _Radius,1);
+    //worldPos = worldToSpherical(worldPos);
+    //worldPos = stereographicalProjection(worldPos.xwzy);
+    ////if (length(worldPos.xyz) <= 1) {
+    ////    worldPos.z = sqrt(1 - worldPos.x * worldPos.x - worldPos.y * worldPos.y);
+    ////    //worldPos = float3(worldPos.xy / (1 - worldPos.z), 1 / _Radius);
+    ////}
+    ////float4 worldPos = mul(unity_ObjectToWorld, vertex) / _Radius;
+    ////if (length(worldPos.xyz) <= 1) {
+    ////    worldPos.w = -sqrt(1 - worldPos.x * worldPos.x - worldPos.y * worldPos.y - worldPos.z * worldPos.z);
+    ////    //worldPos.y = 1 / worldPos.y;
+    ////    worldPos = float4(worldPos.xyz / (1 - worldPos.w), 1 / _Radius);
+    ////    //worldPos.y = 1 / worldPos.y;
+    ////}
+    //v2g o;
+    //o.worldPos = worldPos;
+    //o.normal = normal;
+    //if (_Activate)
+    //    o.pos = mul(UNITY_MATRIX_VP, float4(worldPos.xyz * _Radius, 1));
+    //else
+    //    o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
+    //o.color = normalize(vertex) * 0.8 + abs(normal) * 0.2;//normalize(sphericalPos) / 2 + 0.5;
+    //return o;
 }
 
 g2f lerpV2f(g2f i1, g2f i2, float v)
@@ -115,7 +168,6 @@ g2f lerpV2f(g2f i1, g2f i2, float v)
     _ _ _         _
             =>  /   \ 
 */
-//[maxvertexcount(21)] // Maximum size of OutputStream
 [maxvertexcount(15)] // Maximum size of OutputStream
 void geometry(triangle v2g input[3], inout TriangleStream<g2f> OutputStream)
 {
@@ -141,24 +193,24 @@ void geometry(triangle v2g input[3], inout TriangleStream<g2f> OutputStream)
 
     // |/|/|/
     OutputStream.Append(v00);
-    OutputStream.Append(v01);
-    OutputStream.Append(v10);
-    OutputStream.Append(v11);
-    OutputStream.Append(v20);
-    OutputStream.Append(v21);
+    //OutputStream.Append(v01);
+    //OutputStream.Append(v10);
+    //OutputStream.Append(v11);
+    //OutputStream.Append(v20);
+    //OutputStream.Append(v21);
     OutputStream.Append(v30);
-    OutputStream.RestartStrip();
+    //OutputStream.RestartStrip();
     // |/|/
-    OutputStream.Append(v01);
-    OutputStream.Append(v02);
-    OutputStream.Append(v11);
-    OutputStream.Append(v12);
-    OutputStream.Append(v21);
-    OutputStream.RestartStrip();
+    //OutputStream.Append(v01);
+    //OutputStream.Append(v02);
+    //OutputStream.Append(v11);
+    //OutputStream.Append(v12);
+    //OutputStream.Append(v21);
+    //OutputStream.RestartStrip();
     // |/
-    OutputStream.Append(v02);
+    //OutputStream.Append(v02);
     OutputStream.Append(v03);
-    OutputStream.Append(v12);
+    //OutputStream.Append(v12);
     OutputStream.RestartStrip();
 }
 
@@ -166,7 +218,6 @@ fixed4 fragment(g2f i) : SV_Target
 {
     return i.color;
 }
-
 
 #if false
     // See https://www.shadertoy.com/view/wtXBRH
@@ -177,209 +228,4 @@ fixed4 fragment(g2f i) : SV_Target
 
     // a ray 'p(t)' starting at 'o' going towards to 'd', where (o,d) = 0, is:
     // p(t) = cos(t)*o + sin(t)*d,
-
-    //some shading parameters
-    //const float FOG_DISTANCE = PI*2.;
-    //const vec3  FOG_COLOR    = vec3(0.5,0.6,0.7);
-    //const vec3  LIGHT_COLOR  = vec3(1.,.7,.1);
-    //const vec4  LIGHT_VECTOR = normalize(vec4(1,1,1,1));
-
-    // their are six ''axis''
-    // red, green, blue, yellow, cyan, magenta
-    const vec3 axisColors[6] = vec3[6](
-        vec3(1,0,0),
-        vec3(0,1,0),
-        vec3(0,0,1),
-        vec3(1,1,0),
-        vec3(0,1,1),
-        vec3(1,0,1)
-    );
-
-    // their are eight ''poles''
-    // red, green, blue, yellow, dark red, dark green, dark blue, dark yellow
-    // the dark variant is the antipodal point of the normal variant
-    const vec3 poleColors[8] = vec3[8](
-        vec3(1,0,0),
-        vec3(0,1,0),
-        vec3(0,0,1),
-        vec3(1,1,0),
-        vec3(.5,0,0),
-        vec3(0,.5,0),
-        vec3(0,0,.5),
-        vec3(.5,.5,0)
-    );
-
-
-    // solves a*cos(x) + b*sin(x) = c
-    // define
-    // R^2 = a^2 + b^2
-    // A := a/R, B := b/R, C := c/R
-    // rewrite
-    // A*cos(x) + B*sin(x) = C
-    // now (A,B) is on the unit circle so there exists an angle alpha s.t.
-    // sin(alpha) = A, cos(alpha) = B
-    // so alpha = atan(A, B)
-    // filling in
-    // sin(alpha)*cos(x) + cos(alpha)*sin(x) = C
-    // applying sum identity
-    // sin(alpha+x) = C
-    // we see that it is unsolvable if |C| > 1, or in other words if c^2 > a^2 + b^2
-    // otherwise
-    // x = asin(C) - alpha AND x = pi - asin(C) - alpha
-    float solveThing(float a, float b, float c){
-        float R = sqrt(a*a + b*b);
-        float alpha = atan(a, b);
-        float x = asin(c/R) - alpha;
-        x = mod(x, 2.*PI);
-        return x;
-    }
-
-    // stores information of a hit
-    struct hit{
-        float t; //hit t
-        vec4  p; //hit pos
-        vec4  n; //hit "normal" for the shading
-    };
-
-    // ball intersections can be done analytically
-    // this function solves the system
-    // d(p(t), b) = r
-    // where 'b' is the position of the ball and 'r' its radius,
-    // this all reduces to solving:
-    // cos(t)dot(o,b) + sin(t)dot(d,b) = cos(r)
-    // which can be done analytically as seen above
-    hit ball(vec4 o, vec4 d, vec4 b, float r){
-
-        float t = solveThing(dot(o,b), dot(d,b), cos(r));
-
-        //hit pos
-        vec4 p = o*cos(t)+d*sin(t);
-
-        return hit(t, p, normalize(p-b));
-    }
-
-
-
-    // let a,b in S^3
-    // L = { x in S^3 such that x is the span of a and b}
-    // d(p(t), L) = r
-    // the above equation expands to
-    // cos^2(t)dot(ot,ot) + 2*cos(t)*sin(t)*dot(ot,dt) + sin^2(t)*dot(dt,dt) = cos^2(r)
-    // where ot = (dot(o, a), dot(o, b))
-    // where dt = (dot(d, a), dot(d, b))
-    // luckily these are all double frequency formulations so can be reduced to an equation
-    // that is like solveThing
-    hit axis(vec4 _o, vec4 _d, vec4 a, vec4 b, float r){
-        //reduce to 2d
-        vec2 o = vec2(dot(_o,a),dot(_o,b));
-        vec2 d = vec2(dot(_d,a),dot(_d,b));
-        float cr = cos(r);
-        float cr2 = cr*cr;
-
-        //some variables
-        float A = dot(o, o);
-        float B = dot(o, d);
-        float C = dot(d, d);
-        float E = cr2;
-
-        //solve, the returned thing is 2 times t
-        float t = solveThing(A-C, 2.*B, 2.*E - A - C);
-        //so half it
-        t *= .5;
-
-        //hitpos
-        vec4 p = _o*cos(t)+_d*sin(t);
-
-        //closest pos on the axis
-        vec4 k = dot(p,a)*a + dot(p,b)*b;
-        k = normalize(k);
-
-        return hit(t, p, normalize(p-k));
-    }
-
-
-    hit scene(vec4 o, vec4 d, inout vec3 col){
-        // initialize hit
-        hit h = hit(1e20, vec4(0), vec4(0));
-
-        // balls
-        for(int i=0; i<4; i++){
-            vec4 b = vec4(0);
-            b[i] = 1.;
-            hit nh = ball(o, d, b, 0.1);
-            if(nh.t<h.t){
-                h = nh;
-                col = poleColors[i];
-            }
-        }
-
-        // antipodal balls
-        for(int i=0; i<4; i++){
-            vec4 b = vec4(0);
-            b[i] = -1.;
-            hit nh = ball(o, d, b, 0.1);
-            if(nh.t<h.t){
-                h = nh;
-                col = poleColors[i+4];
-            }
-        }
-
-        // "axis"
-        int c = 0;
-        for(int i=0; i<4; i++){
-            for(int j=i+1; j<4; j++){
-                vec4 a = vec4(0);
-                vec4 b = vec4(0);
-                a[i] = 1.;
-                b[j] = 1.;
-                hit nh = axis(o, d, a, b, 0.05);
-                if(nh.t<h.t){
-                    h = nh;
-                    col = axisColors[c];
-                }
-                c++;
-            }
-        }
-
-        return h;
-    }
-
-    void mainImage( out vec4 fragColor, in vec2 fragCoord )
-    {
-        vec2 p = (fragCoord*2.-iResolution.xy)/iResolution.y*1.;
-
-        // get camera
-        vec4 cameraPosition = texelFetch(iChannel0,ivec2(0,0),0);
-        vec4 cameraForward  = texelFetch(iChannel0,ivec2(1,0),0);
-        vec4 cameraRight    = texelFetch(iChannel0,ivec2(2,0),0);
-        vec4 cameraUpward   = texelFetch(iChannel0,ivec2(3,0),0);
-
-        // create ray
-        vec4 ori = cameraPosition;
-        vec4 dir = normalize(cameraForward+p.x*cameraRight+p.y*cameraUpward);
-
-        // enforce that it is orthonormal
-        GramSchmidt42(ori,dir);
-
-        // initialize color
-        vec3 col = vec3(0);
-
-        // acquire hit with scene
-        hit h = scene(ori, dir, col);
-
-        // diffuse
-        //float d = max(dot(LIGHT_VECTOR, h.n),0.);
-        //col *= (.25 + d*.75);
-
-        // fog
-        //float m = max(dot(dir, LIGHT_VECTOR),0.)*.5;
-        //vec3 skyColor = FOG_COLOR + m*LIGHT_COLOR;
-        //col = mix(col, skyColor, smoothstep(0., FOG_DISTANCE, h.t));
-
-        // gamma correction
-        //col = pow(col,vec3(1./2.2));
-
-        // Output to screen
-        fragColor = vec4(col,1.0);
-    }
 #endif

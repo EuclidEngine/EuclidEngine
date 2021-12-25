@@ -7,6 +7,7 @@ public class spherical : MonoBehaviour
 {
     // Start is called before the first frame update
     public GameObject go;
+    public Vector4 tileHyperOrigin;
 
     private GameObject goX;
     private GameObject goY;
@@ -17,12 +18,16 @@ public class spherical : MonoBehaviour
     {
         goX = Instantiate(go, new Vector3(.5f,0,0), new Quaternion(), transform);
         goX.SetActive(true);
+        goX.GetComponent<SphericalObject>().SetHyperOrigin(tileHyperOrigin);
         goY = Instantiate(go, new Vector3(0,.5f,0), new Quaternion(), transform);
         goY.SetActive(true);
+        goY.GetComponent<SphericalObject>().SetHyperOrigin(tileHyperOrigin);
         goZ = Instantiate(go, new Vector3(0,0,.5f), new Quaternion(), transform);
         goZ.SetActive(true);
+        goZ.GetComponent<SphericalObject>().SetHyperOrigin(tileHyperOrigin);
         goW = Instantiate(go, new Vector3(0,0,0), new Quaternion(), transform);
         goW.SetActive(true);
+        goW.GetComponent<SphericalObject>().SetHyperOrigin(tileHyperOrigin);
 
     #if false
         Mesh mesh = new Mesh();
