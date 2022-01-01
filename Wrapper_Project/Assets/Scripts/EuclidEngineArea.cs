@@ -38,14 +38,14 @@ public class EuclidEngineArea : MonoBehaviour
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetSizeGetterCallback(IntPtr area, SizeGetterFn callback);
         private delegate void ScalerFn(IntPtr go, double x, double y, double z);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetScalerCallback(IntPtr area, ScalerFn callback);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetCameraPosition(IntPtr area, Vector3 position);
+    [DllImport(EuclidEngine.plugin)] protected static extern void EEAreaSetCameraPosition(IntPtr area, Vector3 position);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetSize(IntPtr area, double pExternX, double pExternY, double pExternZ);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetInternalSize(IntPtr area, double pInternX, double pInternY, double pInternZ);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetTransitAreaSize(IntPtr area, double sizeX, double sizeY, double sizeZ);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaAddObjectInside(IntPtr area, int objectId, IntPtr obj);
     [DllImport(EuclidEngine.plugin)] private static extern void EEAreaRemoveObjectInside(IntPtr area, int objectId);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaGetTransformMatrix(IntPtr area, Vector3 dir, out Matrix4x4 ret);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaUpdate(IntPtr area);
+    [DllImport(EuclidEngine.plugin)] protected static extern void EEAreaGetTransformMatrix(IntPtr area, Vector3 dir, out Matrix4x4 ret);
+    [DllImport(EuclidEngine.plugin)] protected static extern void EEAreaUpdate(IntPtr area);
 
 #endregion
 #region Variables
@@ -56,27 +56,27 @@ public class EuclidEngineArea : MonoBehaviour
     /************************************************/
 
     // C++ Area object and callback
-    private IntPtr _area;
+    protected IntPtr _area;
     private PositionGetterFn _areaPosGetter;
     private PositionGetterFn _posGetter;
     private SizeGetterFn _sizeGetter;
     private ScalerFn _scaler;
 
     // C# Area object
-    private BoxCollider _collider;
-    private Camera _camera;
-    private EEAreaPlane _planeRight;
-    private EEAreaPlane _planeLeft;
-    private EEAreaPlane _planeTop;
-    private EEAreaPlane _planeBottom;
-    private EEAreaPlane _planeFront;
-    private EEAreaPlane _planeBack;
+    protected BoxCollider _collider;
+    protected Camera _camera;
+    protected EEAreaPlane _planeRight;
+    protected EEAreaPlane _planeLeft;
+    protected EEAreaPlane _planeTop;
+    protected EEAreaPlane _planeBottom;
+    protected EEAreaPlane _planeFront;
+    protected EEAreaPlane _planeBack;
 
     // Used later to sort all plane by they distance with the camera
-    private List<KeyValuePair<EEAreaPlane, Vector3>> _sortAreaPlane = new List<KeyValuePair<EEAreaPlane, Vector3>>();
+    protected List<KeyValuePair<EEAreaPlane, Vector3>> _sortAreaPlane = new List<KeyValuePair<EEAreaPlane, Vector3>>();
 
     // Area variables
-    [SerializeField] [Tooltip("Size")] private Vector3 _size = new Vector3(1, 1, 1);
+    [SerializeField] [Tooltip("Size")] protected private Vector3 _size = new Vector3(1, 1, 1);
     [SerializeField] [Tooltip("Internal size")] private Vector3 _internalSize = new Vector3(1, 1, 1);
     [SerializeField] [Tooltip("Transit size")] private Vector3 _transitSize = new Vector3(0, 0, 0);
 
@@ -117,7 +117,7 @@ public class EuclidEngineArea : MonoBehaviour
     }
 
     //Called on launch, after Awake
-    void Start()
+    protected virtual void Start()
     {
         _collider = GetComponent<BoxCollider>();
         _collider.size = _size + 2 * _transitSize;
@@ -167,7 +167,7 @@ public class EuclidEngineArea : MonoBehaviour
     }
 
     //Called at end (of object or scene)
-    void OnDestroy()
+    protected virtual void OnDestroy()
     {
         EEAreaDelete(_area);
     }
@@ -188,7 +188,7 @@ public class EuclidEngineArea : MonoBehaviour
     }
 
     //Called every frame
-    void Update()
+    virtual protected void Update()
     {
         EEAreaUpdate(_area);
         UpdatePlanes();
@@ -367,7 +367,7 @@ public class EuclidEngineArea : MonoBehaviour
     /*            C# private functions              */
     /*                                              */
     /************************************************/
-    private void UpdatePlanes()
+    virtual protected void UpdatePlanes()
     {
         _camera.transform.position = Camera.main.transform.position;
         _camera.transform.rotation = Camera.main.transform.rotation;
