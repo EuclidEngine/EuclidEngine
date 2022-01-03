@@ -10,7 +10,7 @@ public class CurvatureController : MonoBehaviour
         
     }
 
-    private float curv = 0.0f;
+    public float curv = 0.0f;
 
     // Update is called once per frame
     void Update()

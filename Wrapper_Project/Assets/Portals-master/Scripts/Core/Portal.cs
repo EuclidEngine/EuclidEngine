@@ -1,14 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class Portal : MonoBehaviour {
-    [Header ("Main Settings")]
     public Portal linkedPortal;
     public MeshRenderer screen;
     public int recursionLimit = 5;
 
-    [Header ("Advanced Settings")]
     public float nearClipOffset = 0.05f;
     public float nearClipLimit = 0.2f;
 
