@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class spherical : MonoBehaviour
+public class SphericalObjCreat : MonoBehaviour
 {
     // Start is called before the first frame update
     public GameObject go;

@@ -2,7 +2,7 @@ Shader "Spherical Space Shader" {
     Properties {
         _Camera ("Camera", Vector) = (0,0,0,1)
         _SphereOrigin ("3-Sphere Origin", Vector) = (0,0,0,0)
-        _SphereRadius ("3-Sphere Radius", Float) = 0
+        _SphereRadius ("3-Sphere Radius", Float) = 1
         [PerRendererData]_TileOrigin ("Tile Hyper-Origin", Vector) = (0,0,0,1)
         _Activate ("Activate", Int) = 1
     }

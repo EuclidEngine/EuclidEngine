@@ -22,7 +22,7 @@ float4 _TileOrigin;
 float4 _SphereOrigin;
 float _SphereRadius;
 int _Activate;
-
+/*
 float4 sphericalToCartesian(sphericalPos pos)
 {
     float4 newpos;
@@ -59,31 +59,31 @@ float4 worldToSpherical(float4 pos)
     spos.angles[0] = fmod(spos.angles[0], PI);
     return sphericalToCartesian(spos);
 }
-
-// https://en.wikipedia.org/wiki/Stereographic_projection#Generalizations
-float4 stereographicalProjection(float4 pos, float4 camera)
+*/
+// cos -sin
+// sin  cos
+float2x2 rotation2D(float2 v1, float2 v2)
 {
-    // QP => P' (P'.w = {0,1})
-    // (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',{0,1})
-    // wq + k(wp-wq) = {0,1}
-    // k = ({0,1}-wq) / (wp-wq) = (wq-{0,1}) / (wq-wp)
-    if (pos.w == camera.w) {
-        return float4(0,0,0,0);
-    } else {
-        float coeff = (camera.w - 1) / (camera.w - pos.w);
-        return camera + coeff * (pos - camera);
-    }
+    float l = length(v1) * length(v2);
+    if (l == 0.f)
+        return float2x2(1.f,0.f,0.f,1.f);
+    float2x2 trig;
+    trig._11 = dot(v1, v2) / l;
+    trig._22 = trig._11;
+    trig._21 = dot(float2(-v1.y,v1.x), v2) / l; // Perp dot product => dot(perp(v1),v2) = ||v1|| ||v2|| sin
+    trig._12 = -trig._21;
+    return trig;
 }
 
-float4 reverseStereographicalProjection(float4 pos, float4 planeNormal, float4 sphereCenter, float sphereRadius)
+float4 reverseStereographicalProjection(float4 pos, float4 tileOrigin, float4 sphereCenter, float sphereRadius)
 {
-    float4 projPoint = sphereCenter - normalize(planeNormal) * sphereRadius;
     // QP => P' <==> (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',w')
     // ||s-P'|| = rad <==> (xs-x')^2 + (ys-y')^2 + (zs-z')^2 + (ws-w')^2 = rad^2
     // (xs-x')² = (xs - xq - k(xp-xq))² = (k(xp-xq) + (xq-xs))²
     // (xs-x')² = k²(xp-xq)² + k*2(xp-xq)(xq-xs) + (xq-xs)²
-    float4 QP = pos - projPoint;
-    float4 SQ = projPoint - sphereCenter; // == normalize(planeNormal) * sphereRadius
+    float4 Q = float4(0,0,0,1+sphereRadius) + float4(0,0,0,1) * sphereRadius;
+    float4 QP = pos - Q;
+    float4 SQ = float4(0,0,0,1) * sphereRadius;//Q - float4(0,0,0,1+sphereRadius);
 
     // (Ak² + Bk + C) = rad^2
     float A = dot(QP, QP); // == length(QP)^2
@@ -94,7 +94,53 @@ float4 reverseStereographicalProjection(float4 pos, float4 planeNormal, float4 s
     // k = (-B{+-}sqrt(det))/2A
     // k = {0, -B/A}
     float coeff = -B / A;
-    return projPoint + coeff * QP;
+
+    // https://fr.wikipedia.org/wiki/Rotation_en_quatre_dimensions#Constructions_des_matrices_de_rotation
+    // Get the rotation matrix between the projection point and Q 
+    float4 projPoint = sphereCenter - (normalize(tileOrigin) * sphereRadius - sphereCenter);
+    float4 calcCenterProj = SQ;
+    float4 centerProj = projPoint - sphereCenter;
+    float4x4 rotate = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    // True when both are 0 or none are 0
+    if ((length(calcCenterProj.xy) == 0) ^ (length(centerProj.xy) != 0)) {
+        rotate._11_12_21_22 = rotation2D(calcCenterProj.xy, centerProj.xy);
+        rotate._33_34_43_44 = rotation2D(calcCenterProj.zw, centerProj.zw);
+    } else if ((length(calcCenterProj.xz) == 0) ^ (length(centerProj.xz) != 0)) {
+        rotate._11_13_31_33 = rotation2D(calcCenterProj.xz, centerProj.xz);
+        rotate._22_24_42_44 = rotation2D(calcCenterProj.yw, centerProj.yw);
+    } else if ((length(calcCenterProj.xw) == 0) ^ (length(centerProj.xw) != 0)) {
+        rotate._11_14_41_44 = rotation2D(calcCenterProj.xw, centerProj.xw);
+        rotate._22_23_32_33 = rotation2D(calcCenterProj.yz, centerProj.yz);
+    }
+
+    return mul(SQ + coeff * QP, rotate) + sphereCenter;
+}
+
+// https://en.wikipedia.org/wiki/Stereographic_projection#Generalizations
+float4 stereographicalProjection(float4 pos, float4 projVect, float4 sphereCenter, float sphereRadius)
+{
+    // QP => P' (P' ∈ S, OQ ⊥ S)
+    // dot(QO,QP) = length(QO)*length(QP)*cos(OQP)
+    // cos(OQP) = 2*OQ/QP'
+    // QP' = 2*OQ/cos(OQP)
+    float4 projPoint = normalize(projVect) * sphereRadius;
+    float cosQ = dot(pos-sphereCenter-projPoint, projPoint) / (sphereRadius * sphereRadius); // len(pos-sphereCenter) == len(projPoint) == sphereRadius
+    float coeff = 2 * sphereRadius / cosQ;
+    float4 newPos = sphereCenter + projPoint + coeff * (pos-sphereCenter - projPoint);
+    newPos.w = 1;
+    return newPos;
+#if false
+    if (pos.w == projVect.w) {
+        return float4(0,0,0,0);
+    } else {
+        // QP => P' (P'.w = {0,1})
+        // (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',{0,1})
+        // wq + k(wp-wq) = {0,1}
+        // k = ({0,1}-wq) / (wp-wq) = (wq-{0,1}) / (wq-wp)
+        float coeff = (projPoint.w - wTargetedPlan) / (projPoint.w - pos.w);
+        return projPoint + coeff * (pos - projPoint);
+    }  
+#endif
 }
 
 /*
@@ -112,16 +158,16 @@ v2g vertex(float4 vertex : POSITION, float4 normal : NORMAL)
     // Vertex pos to Chunk pos
     float4 wpos = mul(unity_ObjectToWorld, vertex);
     // Chunk pos to Spherical pos
-    wpos = reverseStereographicalProjection(wpos, _TileOrigin - _SphereOrigin, _SphereOrigin, _SphereRadius);
+    wpos = reverseStereographicalProjection(wpos, _TileOrigin, _SphereOrigin, _SphereRadius);
     o.worldPos = wpos;
     // Spherical pos to Euclidean pos
-    float4 cameraPos = reverseStereographicalProjection(_Camera, _Camera - _SphereOrigin, _SphereOrigin, _SphereRadius);
-    wpos = stereographicalProjection(wpos, _SphereOrigin - (cameraPos - _SphereOrigin));
+    //float4 cameraPos = reverseStereographicalProjection(_Camera, _Camera, _SphereOrigin, _SphereRadius);
+    wpos = stereographicalProjection(wpos, _Camera, _SphereOrigin, _SphereRadius);//_SphereOrigin - ((normalize(_Camera)*_SphereRadius) - _SphereOrigin));
 
     if (_Activate)
+        // Euclidean pos to Screen pos
         o.pos = mul(UNITY_MATRIX_VP, wpos);
     else
-        // Euclidean pos to Screen pos
         o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
     return o;
     //float4 worldPos = float4(mul(unity_ObjectToWorld, vertex).xyz / _Radius,1);

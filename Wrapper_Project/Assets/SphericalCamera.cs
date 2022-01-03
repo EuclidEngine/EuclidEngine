@@ -6,32 +6,29 @@ public class SphericalCamera : MonoBehaviour
 {
     public Material shaderHolder;
 
+    private Vector3 oldPos;
+    private Vector4 position4;
+
     // Start is called before the first frame update
     void Start()
     {
-        /*const*/ Vector4 pos = transform.position; pos.w = 1;
-        /*const*/ Vector4 hyperorigin = pos;
-        /*const*/ Vector4 sphereCenter = new Vector4(0,0,0,0);
-        /*const*/ Vector4 planeNormal = hyperorigin - sphereCenter;
-        /*const*/ float sphereRadius = 1;
-
-        Vector4 projPoint = sphereCenter - planeNormal.normalized * sphereRadius;
-        Vector4 QP = pos - projPoint;
-        Vector4 SQ = projPoint - sphereCenter;
-        float A = Vector4.Dot(QP, QP);
-        float B = 2 * Vector4.Dot(QP, SQ);
-        float k = - B / A;
-        //print(("Camera: ", pos, projPoint, k, "->", projPoint + k * QP));
+        oldPos = transform.position;
+        position4 = new Vector4(oldPos.x, oldPos.y, oldPos.z, 1f);
+        position4 = new Vector4(0,0,0,-1f) + (-2*Vector4.Dot(new Vector4(oldPos.x, oldPos.y, oldPos.z, 2f), new Vector4(0,0,0,-1f))/Vector4.Dot(new Vector4(oldPos.x, oldPos.y, oldPos.z, 2f),new Vector4(oldPos.x, oldPos.y, oldPos.z, 2f))) * new Vector4(oldPos.x, oldPos.y, oldPos.z, 2f);
     }
 
     // Update is called once per frame
     void Update()
     {
-        float x = Input.GetAxis("Horizontal");
-        float y = Input.GetAxis("Vertical");
-
-        Vector4 pos = transform.position; pos.w = 1;
-        //
-        shaderHolder.SetVector("_Camera", pos);
+        Vector3 delta = transform.position - oldPos;
+        oldPos = transform.position;
+        position4 = new Vector4(
+            position4.x * Mathf.Cos(delta.x) + position4.w * Mathf.Sin(delta.x),
+            position4.y * Mathf.Cos(delta.y) + position4.w * Mathf.Sin(delta.y),
+            position4.z * Mathf.Cos(delta.z) + position4.w * Mathf.Sin(delta.z),
+            position4.w * Mathf.Cos(delta.x) * Mathf.Cos(delta.y) * Mathf.Cos(delta.z)
+                - position4.x * Mathf.Sin(delta.x) - position4.y * Mathf.Sin(delta.y) - position4.z * Mathf.Sin(delta.z)
+        );
+        shaderHolder.SetVector("_Camera", position4);
     }
 }
