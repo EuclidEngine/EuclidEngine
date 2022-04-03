@@ -25,7 +25,7 @@ class EuclidEngineConnection : EditorWindow
         file.Close();
     }
 
-    [MenuItem("Window/EuclidEngineConnection")]
+    [MenuItem("Euclid Engine/Connexion")]
     public static void Init()
     {
         EditorWindow window = GetWindow(typeof(EuclidEngineConnection));
