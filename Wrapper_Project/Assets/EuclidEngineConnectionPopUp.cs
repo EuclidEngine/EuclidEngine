@@ -82,7 +82,7 @@ public class EuclidWindow : MonoBehaviour//EditorWindow
             if (!LoadCredential())
             {
                 EditorUtility.DisplayDialog("Please login to Euclid Engine",
-                        "You seems to be not login to your Euclid Engine account, to ensure the quality of our services please connect to your account using Window/EuclidEngineConnection", "I understand");
+                        "You seem not to be logged in to your Euclid Engine account, to ensure the quality of our services please connect to your account using Euclid Engine/Connection", "I understand");
             }
         }
     }

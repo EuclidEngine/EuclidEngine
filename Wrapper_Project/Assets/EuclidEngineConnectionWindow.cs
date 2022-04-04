@@ -34,7 +34,7 @@ class EuclidEngineConnection : EditorWindow
 
     void OnGUI()
     {
-        GUILayout.Label("Handle your EuclidEngine account connection from this window");
+        GUILayout.Label("Manage your EuclidEngine account connection from this window");
         EditorGUILayout.Space();
         EditorGUILayout.Space();
         username = EditorGUILayout.TextField("Username: ", username);
