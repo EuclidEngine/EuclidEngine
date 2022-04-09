@@ -29,21 +29,22 @@ class EuclidEngineConnection : EditorWindow
     public static void Init()
     {
         EditorWindow window = GetWindow(typeof(EuclidEngineConnection));
+        window.titleContent.text = "Login";
         window.Show();
     }
 
     void OnGUI()
     {
-        GUILayout.Label("Manage your EuclidEngine account connection from this window");
-        EditorGUILayout.Space();
         EditorGUILayout.Space();
         username = EditorGUILayout.TextField("Username: ", username);
-        mdp = EditorGUILayout.PasswordField("Password: ", mdp);
-        //buton to save credentials
         EditorGUILayout.Space();
+        mdp = EditorGUILayout.PasswordField("Password: ", mdp);
+        EditorGUILayout.Space();
+        //buton to save credentials
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Log in"))
         {
+            EuclidEngineAPI.Login(username, mdp);
             SaveCredential(username, mdp);
         }
         //buton to delete credentials
