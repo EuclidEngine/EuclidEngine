@@ -27,20 +27,26 @@ public class EuclidEngineAPI : MonoBehaviour
     static Action<string> s_requestCallback;
     static string bearerToken = "";
 
-    public static void Login(string email, string password)
+    public static HttpWebResponse Login(string email, string password)
     {
         string jsonBody;
         jsonBody = "{" +
             "\"email\": \"" + email + "\"," +
             "\"password\": \"" + password + "\"" +
             "}";
-        SendPostRequest("/login", AuthControllerPort, jsonBody, (string response) => {
+        HttpWebResponse response = SendPostRequest("/login", AuthControllerPort, jsonBody);/*, (string response) => {
             bearerToken = response;
             Debug.Log("Token is: " + bearerToken);
-        });
+        });*/
+        string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+        bearerToken = responseString;
+        Debug.Log("Token is: " + responseString);
+        return(response);
     }
 
-    public static void SendTicket(string ticket_object, string ticket_message, string ticket_image)
+
+
+    public static HttpWebResponse SendTicket(string ticket_object, string ticket_message, string ticket_image)
     {
         string jsonBody;
         jsonBody = "{" +
@@ -48,43 +54,94 @@ public class EuclidEngineAPI : MonoBehaviour
             "\"ticket_message\": \"" + ticket_message + "\"," +
             "\"ticket_image\": \"" + ticket_image + "\"" +
         "}";
-        SendPostRequest("/sendTicket", TicketManagerPort, jsonBody, (string response) => {
+        HttpWebResponse response = SendPostRequest("/sendTicket", TicketManagerPort, jsonBody);/*, (string response) => {
             Debug.Log("Ticket Response: " + response);
-        });
+        });*/
+        string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+        Debug.Log("Ticket Response: " + responseString);
+        return(response);
     }
 
-    private static void SendPostRequest(string route, string port, string jsonBody, Action<string> requestCallback)
+    public static HttpWebResponse GetLicence()
+    {
+        HttpWebResponse response = GetRequest("/getLicence", LicenceManagerPort, "{}", true);
+        return(response);
+    }
+
+    private static HttpWebResponse GetRequest(string route, string port, string jsonBody, bool needToken)
     {
         string fullUrl = EE_Url + port + EE_ApiComp + route;
-        www = UnityWebRequest.Post(fullUrl, jsonBody);
-        byte[] jsonToSend = new System.Text.UTF8Encoding().GetBytes(jsonBody);
-        www.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);
-        www.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
-        if (bearerToken.Length != 0)
-            www.SetRequestHeader("Authorization", "Bearer " + bearerToken);
-        www.SetRequestHeader("User-Agent", "PostmanRuntime/7.29.0");
-        www.SetRequestHeader("Content-Type", "application/json");
-        www.SetRequestHeader("Accept", "*/*");
-        www.SetRequestHeader("Accept-Encoding", "gzip, deflate, br");
-        www.SendWebRequest();
 
-        EditorApplication.update += EditorUpdate;
-        s_requestCallback = requestCallback;
-    }
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullUrl);
+        if (needToken)
+            request.Headers.Add("Authorization", "Bearer "+ bearerToken);
 
-    private static void EditorUpdate()
-    {
-        if (!www.isDone)
-            return;
-
-        if (www.isNetworkError)
-            Debug.LogError(www.error);
-        else
+        HttpWebResponse response = null;
+        try {
+            response = (HttpWebResponse)request.GetResponse();
+        } catch (WebException ex)
         {
-            Debug.Log("Request Code: " + www.responseCode.ToString());
-            s_requestCallback(www.downloadHandler.text);
+            response = (HttpWebResponse)ex.Response;
         }
 
-        EditorApplication.update -= EditorUpdate;
+        return response;
     }
+
+    private static HttpWebResponse SendPostRequest(string route, string port, string jsonBody/*, Action<string> requestCallback*/)
+    {
+        string fullUrl = EE_Url + port + EE_ApiComp + route;
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(fullUrl);
+        byte[] data = Encoding.ASCII.GetBytes(jsonBody);
+
+        request.Method = "POST";
+        request.ContentType = "application/x-www-form-urlencoded";
+        //request.ContentType = "application/json";
+        //request.UserAgent = "PostmanRuntime/7.29.0";
+        //request.Accept = "*/*"
+        request.ContentLength = data.Length;
+        using (Stream stream = request.GetRequestStream())
+        {
+            stream.Write(data, 0, data.Length);
+        }
+        HttpWebResponse response = null;
+        try {
+            response = (HttpWebResponse)request.GetResponse();
+        } catch (WebException ex)
+        {
+            response = (HttpWebResponse)ex.Response;
+        }
+        return response;
+
+
+        //www = UnityWebRequest.Post(fullUrl, jsonBody);
+        //byte[] jsonToSend = new System.Text.UTF8Encoding().GetBytes(jsonBody);
+        //www.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);
+        //www.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        //if (bearerToken.Length != 0)
+        //    www.SetRequestHeader("Authorization", "Bearer " + bearerToken);
+        //www.SetRequestHeader("User-Agent", "PostmanRuntime/7.29.0");
+        //www.SetRequestHeader("Content-Type", "application/json");
+        //www.SetRequestHeader("Accept", "*/*");
+        //www.SetRequestHeader("Accept-Encoding", "gzip, deflate, br");
+        //www.SendWebRequest();
+
+        //EditorApplication.update += EditorUpdate;
+        //s_requestCallback = requestCallback;
+    }
+
+    //private static void EditorUpdate()
+    //{
+    //    if (!www.isDone)
+    //        return;
+
+    //    if (www.isNetworkError)
+    //        Debug.LogError(www.error);
+    //    else
+    //    {
+    //        Debug.Log("Request Code: " + www.responseCode.ToString());
+    //        s_requestCallback(www.downloadHandler.text);
+    //    }
+
+    //    EditorApplication.update -= EditorUpdate;
+    //}
 }
