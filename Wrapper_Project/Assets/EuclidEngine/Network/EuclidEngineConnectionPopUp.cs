@@ -38,14 +38,16 @@ public class EuclidWindow : MonoBehaviour//EditorWindow
         // Test string validity
         if (IsNullOrEmpty(user) || IsNullOrEmpty(mdp))
             return false;
-        return true;
 
-        // Test account Validity
-        // HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+        HttpWebResponse response = EuclidEngineAPI.Login(user, mdp);
+        if (response.StatusCode == HttpStatusCode.OK)
+            return true;
+        else
+            return false;
     }
 
     // Does credential already exist
-    static bool LoadCredential()
+    static public bool LoadCredential()
     {
         string destination = Application.persistentDataPath + "/save.dat";
         FileStream file;

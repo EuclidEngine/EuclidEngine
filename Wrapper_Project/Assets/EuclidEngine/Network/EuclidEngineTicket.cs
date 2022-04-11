@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
+using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
 public class EuclidEngineTicket : EditorWindow
@@ -12,6 +13,8 @@ public class EuclidEngineTicket : EditorWindow
     private string ticket_message = "";
     private string ticket_image = "";
     private string imagePath = "";
+
+    private HttpStatusCode ticketStatuscode;
 
     [MenuItem("Euclid Engine/Tickets")]
     public static void Init()
@@ -46,7 +49,16 @@ public class EuclidEngineTicket : EditorWindow
         //button to send tickets
         if (GUILayout.Button("Send Ticket"))
         {
-            EuclidEngineAPI.SendTicket(ticket_object, ticket_message, ticket_image);
+            HttpWebResponse response = EuclidEngineAPI.SendTicket(ticket_object, ticket_message, ticket_image);
+            ticketStatuscode = response.StatusCode;
+            if (ticketStatuscode == HttpStatusCode.OK)
+            {
+                EditorUtility.DisplayDialog("Ticket Status", "Ticket successfully sent !", "OK");
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("Ticket Status", "Ticket couldn't be sent, check your connection or Euclid Engine's server status.", "OK");
+            }
         }
         this.Repaint();
     }

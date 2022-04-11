@@ -14,7 +14,7 @@ class EuclidEngineConnection : EditorWindow
 
     private HttpStatusCode loginStatuscode;
     private bool clickedLogin = false;
-    private bool isConnected = false;
+    static private bool isConnected = false;
     private bool licenceFound = false;
 
     private void SaveCredential(string user, string mdp)
@@ -37,6 +37,11 @@ class EuclidEngineConnection : EditorWindow
         EditorWindow window = GetWindow(typeof(EuclidEngineConnection));
         window.titleContent.text = "Login";
         window.Show();
+
+        if (EuclidWindow.LoadCredential())
+        {
+            isConnected = true;
+        }
     }
 
     void OnGUI()

@@ -25,7 +25,7 @@ public class EuclidEngineAPI : MonoBehaviour
 
     static UnityWebRequest www;
     static Action<string> s_requestCallback;
-    static string bearerToken = "";
+    static public string bearerToken = "";
 
     public static HttpWebResponse Login(string email, string password)
     {
@@ -34,26 +34,31 @@ public class EuclidEngineAPI : MonoBehaviour
             "\"email\": \"" + email + "\"," +
             "\"password\": \"" + password + "\"" +
             "}";
-        HttpWebResponse response = SendPostRequest("/login", AuthControllerPort, jsonBody);/*, (string response) => {
-            bearerToken = response;
-            Debug.Log("Token is: " + bearerToken);
-        });*/
+        HttpWebResponse response = SendPostRequest("/login", AuthControllerPort, jsonBody);
         string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
         bearerToken = responseString;
         Debug.Log("Token is: " + responseString);
         return(response);
     }
 
-
-
     public static HttpWebResponse SendTicket(string ticket_object, string ticket_message, string ticket_image)
     {
         string jsonBody;
-        jsonBody = "{" +
+        if (ticket_image.Length == 0)
+        {
+            jsonBody = "{" +
+            "\"ticket_object\": \"" + ticket_object + "\"," +
+            "\"ticket_message\": \"" + ticket_message + "\"" +
+            "}";
+        }
+        else
+        {
+            jsonBody = "{" +
             "\"ticket_object\": \"" + ticket_object + "\"," +
             "\"ticket_message\": \"" + ticket_message + "\"," +
             "\"ticket_image\": \"" + ticket_image + "\"" +
-        "}";
+            "}";
+        }
         HttpWebResponse response = SendPostRequest("/sendTicket", TicketManagerPort, jsonBody);/*, (string response) => {
             Debug.Log("Ticket Response: " + response);
         });*/
@@ -95,9 +100,11 @@ public class EuclidEngineAPI : MonoBehaviour
 
         request.Method = "POST";
         request.ContentType = "application/x-www-form-urlencoded";
-        //request.ContentType = "application/json";
+        if (bearerToken.Length != 0)
+            request.Headers.Add("Authorization", "Bearer " + bearerToken);
+        request.ContentType = "application/json";
         //request.UserAgent = "PostmanRuntime/7.29.0";
-        //request.Accept = "*/*"
+        request.Accept = "*/*";
         request.ContentLength = data.Length;
         using (Stream stream = request.GetRequestStream())
         {
