@@ -65,7 +65,7 @@ public class EEAreaPlane : MonoBehaviour
         {
             var vert = renderer.sprite.vertices[i];
             renderer.sprite.vertices[i].x = 1.0f;
-            Debug.LogWarning("i: " + i + ", " + vert.ToString());
+            //Debug.LogWarning("i: " + i + ", " + vert.ToString());
         }
 
         texture2D.Apply();

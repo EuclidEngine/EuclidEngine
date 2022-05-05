@@ -63,7 +63,8 @@ public class EuclidEngineObject : MonoBehaviour
     //Called at end (of object or scene)
     void OnDestroy()
     {
-        gameObject.transform.SetParent(EEObjectContainer.transform.parent);
+        if (gameObject.name != "Cube")
+            gameObject.transform.SetParent(EEObjectContainer.transform.parent);
         Destroy(EEObjectContainer);
     }
 
