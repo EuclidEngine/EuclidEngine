@@ -19,6 +19,34 @@ public class EuclidEngineData
     public string getMdp() { return mdp; }
 
     public string getUser() { return user; }
+
+    public void encodeMdp()
+    {
+        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(mdp);
+        mdp = System.Convert.ToBase64String(plainTextBytes);
+    }
+    public void encodeUser()
+    {
+        var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(user);
+        user = System.Convert.ToBase64String(plainTextBytes);
+    }
+
+    public string getDecodedString(string encoded)
+    {
+        var base64EncodedBytes = System.Convert.FromBase64String(encoded);
+        return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+    }
+
+    public void setUser(string usergiven)
+    {
+        user = usergiven;
+    }
+
+    public void setMdp(string mdpgiven)
+    {
+        mdp = mdpgiven;
+    }
+
 }
 
 [InitializeOnLoad]
@@ -65,6 +93,8 @@ public class EuclidWindow : MonoBehaviour//EditorWindow
 
         if (data == null)
             return false;
+        data.setUser(data.getDecodedString(data.getUser()));
+        data.setMdp(data.getDecodedString(data.getMdp()));
 
         return ConnectToEuclid(data.getUser(), data.getMdp());
     }
