@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEditor;
 using System.Collections;
 using System.Net;
@@ -27,6 +28,8 @@ class EuclidEngineConnection : EditorWindow
         Debug.Log(destination);
 
         EuclidEngineData data = new EuclidEngineData(user, mdp);
+        data.encodeUser();
+        data.encodeMdp();
         BinaryFormatter bf = new BinaryFormatter();
         bf.Serialize(file, data);
         file.Close();
