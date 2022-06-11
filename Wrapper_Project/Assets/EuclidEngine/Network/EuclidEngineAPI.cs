@@ -37,7 +37,7 @@ public class EuclidEngineAPI : MonoBehaviour
         HttpWebResponse response = SendPostRequest("/login", AuthControllerPort, jsonBody);
         string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
         bearerToken = responseString;
-        Debug.Log("Token is: " + responseString);
+        //Debug.Log("Token is: " + responseString);
         return(response);
     }
 
@@ -63,7 +63,7 @@ public class EuclidEngineAPI : MonoBehaviour
             Debug.Log("Ticket Response: " + response);
         });*/
         string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
-        Debug.Log("Ticket Response: " + responseString);
+        //Debug.Log("Ticket Response: " + responseString);
         return(response);
     }
 

@@ -52,7 +52,7 @@ public class EuclidEngineData
 [InitializeOnLoad]
 public class EuclidWindow : MonoBehaviour//EditorWindow
 {
-    private string url = "";
+    //private string url = "";
 
     private static bool IsNullOrEmpty(string s)
     {

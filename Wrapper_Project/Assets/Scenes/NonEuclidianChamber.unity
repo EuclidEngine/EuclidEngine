@@ -777,6 +777,19 @@ MonoBehaviour:
   _size: {x: 10, y: 4, z: 10}
   _internalSize: {x: 4, y: 3, z: 2}
   _transitSize: {x: 0, y: 0, z: 0}
+  BackSide:
+  - row: 01
+  FrontSide:
+  - row: 00
+  LeftSide:
+  - row: 00
+  RightSide:
+  - row: 00
+  TopSide:
+  - row: 00
+  BottomSide:
+  - row: 00
+  NumberOfPieces: 1
   myPrefab: {fileID: 211779291407473853, guid: c9c222806f9e731499191c6fa75bcae4, type: 3}
   WallMaterial: {fileID: 10302, guid: 0000000000000000f000000000000000, type: 0}
   WallThickness: 1
