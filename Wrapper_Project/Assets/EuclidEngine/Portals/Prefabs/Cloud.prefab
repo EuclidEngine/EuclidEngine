@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7239550491421802081}
   - component: {fileID: 3982455012507288216}
   - component: {fileID: -9156040753567654156}
+  - component: {fileID: -9776185197733907}
   m_Layer: 0
   m_Name: Cloud
   m_TagString: Untagged
@@ -93,3 +94,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotSpeedMinMax: {x: 1, y: 5}
+--- !u!64 &-9776185197733907
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3420575963907012164}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 289301614986012343, guid: 5f6ba19cd512643d48d7b033d6a83a67, type: 3}
