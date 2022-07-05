@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [AddComponentMenu("Euclid Engine/Non Euclidian Chamber")]
 [RequireComponent(typeof(BoxCollider), typeof(Rigidbody), typeof(Material))]
 
-public class EuclidEngineChamberArea : EuclidEngineArea
+public class EuclidEngineChamberArea : EuclidEngineArea2
 {
     /* Const var*/
     private const int NUMBER_OF_FACES = 6;

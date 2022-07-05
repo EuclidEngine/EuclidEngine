@@ -58,6 +58,10 @@ public class EuclidEngineAreaEditor : Editor
         
         EditorGUILayout.LabelField("Area Attributes :");
 
+        size = serializedObject.FindProperty("_size");
+        internalSize = serializedObject.FindProperty("_internalSize");
+        transitSize = serializedObject.FindProperty("_transitSize");
+
         serializedObject.Update();
         EditorGUILayout.PropertyField(size);
         EditorGUILayout.PropertyField(internalSize);
