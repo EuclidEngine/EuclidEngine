@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using EuclidEngine;
 
 namespace Tests
 {
@@ -20,7 +21,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator CreateAnArea()
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(2, 2, 2),
+            Area TestArea = Area.Instantiate(new Vector3(2, 2, 2),
                                                                      new Vector3(1, 1, 1),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
@@ -34,7 +35,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator BasicScaleUpTest()
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(2, 2, 2),
+            Area TestArea = Area.Instantiate(new Vector3(2, 2, 2),
                                                                      new Vector3(1, 1, 1),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
@@ -49,7 +50,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator BasicScaleDownTest()
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(10, 10, 10),
+            Area TestArea = Area.Instantiate(new Vector3(10, 10, 10),
                                                                      new Vector3(20, 20, 20),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
@@ -64,7 +65,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator BasicNoScaleTest()
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(10, 10, 10),
+            Area TestArea = Area.Instantiate(new Vector3(10, 10, 10),
                                                                      new Vector3(10, 10, 10),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
@@ -79,7 +80,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator BasicScaleBothTest()
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(10, 10, 10),
+            Area TestArea = Area.Instantiate(new Vector3(10, 10, 10),
                                                                      new Vector3(20, 10, 5),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
@@ -94,7 +95,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator OutsideArea()
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(10, 10, 10),
+            Area TestArea = Area.Instantiate(new Vector3(10, 10, 10),
                                                                      new Vector3(20, 20, 20),
                                                                      Vector3.zero,
                                                                      Quaternion.identity);
@@ -109,7 +110,7 @@ namespace Tests
         [UnityTest]
         public IEnumerator BasicScaleTransitionTest()
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(20, 20, 20),
+            Area TestArea = Area.Instantiate(new Vector3(20, 20, 20),
                                                                      new Vector3(10, 10, 10),
                                                                      new Vector3(5, 5, 5),
                                                                      Vector3.zero,
@@ -126,7 +127,7 @@ namespace Tests
         public IEnumerator MovingPositionArea()
         {
             
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(20, 20, 20),
+            Area TestArea = Area.Instantiate(new Vector3(20, 20, 20),
                                                                      new Vector3(10, 10, 10),
                                                                      new Vector3(5, 5, 5),
                                                                      Vector3.zero,
