@@ -1,5 +1,9 @@
 #include "UnityCG.cginc"
 
+UNITY_INSTANCING_BUFFER_START(Props)
+UNITY_DEFINE_INSTANCED_PROP(float4x4, _GyrVec)
+UNITY_INSTANCING_BUFFER_END(Props)
+
 #define PI 3.14159265359
 
 struct v2g {
@@ -20,7 +24,7 @@ struct sphericalPos {
 float4 _Camera;
 float4 _TileOrigin;
 float4 _SphereOrigin;
-float _SphereRadius;
+float _EEWorldRadius = 1;
 int _Activate;
 /*
 float4 sphericalToCartesian(sphericalPos pos)
@@ -65,7 +69,7 @@ float4 worldToSpherical(float4 pos)
 float2x2 rotation2D(float2 v1, float2 v2)
 {
     float l = length(v1) * length(v2);
-    if (l == 0.f)
+    if (abs(l) <= 0.0001f)
         return float2x2(1.f,0.f,0.f,1.f);
     float2x2 trig;
     trig._11 = dot(v1, v2) / l;
@@ -75,8 +79,45 @@ float2x2 rotation2D(float2 v1, float2 v2)
     return trig;
 }
 
+float3 mobius_add(float3 v1, float3 v2, inout float3 n) {
+    float3 c = cross(v2, v1);
+    float l = 1 - dot(v2, v1);
+    float3 t = v1 + v2;
+    float4 v3 = normalize(float4(c, l));
+    float3 q = cross(v3.xyz, n); q += q;
+    n += v3.w * q + cross(v3.xyz, q);
+    return (t * l + cross(c, t)) / (l * l + dot(c, c));
+}
+
+float4 quatMul(float4 q1, float4 q2)
+{ 
+    return float4(
+        q1.x * q2.w + q1.w * q2.x + q1.y * q2.z - q1.z * q2.y,
+        q1.y * q2.w + q1.w * q2.x + q1.z * q2.x - q1.x * q2.z,
+        q1.z * q2.w + q1.w * q2.z + q1.x * q2.y - q1.y * q2.x,
+        q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z
+    );
+}
+
+float4 quatInv(float4 q)
+{
+    float l = dot(q,q);
+    return float4(-q.x/l, -q.y/l, -q.z/l, q.w/l);
+}
+
+float4 rotFromTo(float4 v1, float4 v2) { return quatMul(quatInv(normalize(v1)), normalize(v2)); }
+
 float4 reverseStereographicalProjection(float4 pos, float4 tileOrigin, float4 sphereCenter, float sphereRadius)
 {
+#if 0
+    float4 P = quatMul(pos, rotFromTo(float4(0,0,0,1), tileOrigin - sphereCenter));
+    float4 Q = sphereCenter - tileOrigin;
+    float4 QP = P - Q;
+    float4 OQ = - tileOrigin;// Q - _origin
+    float coeff = -2 * dot(QP, OQ) / dot(QP, QP);
+
+    return Q + coeff * QP + sphereCenter;
+#elif 1
     // QP => P' <==> (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',w')
     // ||s-P'|| = rad <==> (xs-x')^2 + (ys-y')^2 + (zs-z')^2 + (ws-w')^2 = rad^2
     // (xs-x')² = (xs - xq - k(xp-xq))² = (k(xp-xq) + (xq-xs))²
@@ -114,11 +155,23 @@ float4 reverseStereographicalProjection(float4 pos, float4 tileOrigin, float4 sp
     }
 
     return mul(SQ + coeff * QP, rotate) + sphereCenter;
+#endif
 }
 
 // https://en.wikipedia.org/wiki/Stereographic_projection#Generalizations
 float4 stereographicalProjection(float4 pos, float4 projVect, float4 sphereCenter, float sphereRadius)
 {
+#if 0
+    float4 Q = sphereCenter - projVect;
+    float4 QP = normalize((pos - sphereCenter) - Q);
+    float coeff;
+    if (abs(dot(-Q, QP)) <= 0.0001f)
+        coeff = 1000*1000*1000;
+    else
+        coeff = 2 * sphereRadius * sphereRadius / dot(-Q, QP);
+    float4 newPos = Q + QP * coeff;
+    return quatMul(newPos, rotFromTo(projVect - sphereCenter, float4(0,0,0,1)));
+#elif 1
     // QP => P' (P' ∈ S, OQ ⊥ S)
     // dot(QO,QP) = length(QO)*length(QP)*cos(OQP)
     // cos(OQP) = 2*OQ/QP'
@@ -129,7 +182,7 @@ float4 stereographicalProjection(float4 pos, float4 projVect, float4 sphereCente
     float4 newPos = sphereCenter + projPoint + coeff * (pos-sphereCenter - projPoint);
     newPos.w = 1;
     return newPos;
-#if false
+#elif 0
     if (pos.w == projVect.w) {
         return float4(0,0,0,0);
     } else {
@@ -153,22 +206,51 @@ v2g vertex(float4 vertex : POSITION, float4 normal : NORMAL)
 {
     v2g o;
     o.normal = normal;
-    o.color = 1 * (normalize(vertex) * 0.8 + abs(normal) * 0.2);//normalize(sphericalPos) / 2 + 0.5;
+    // o.pos = o.worldPos = vertex;
+    o.color = vertex;//1 * (normalize(vertex) * 0.8 + abs(normal) * 0.2);//normalize(sphericalPos) / 2 + 0.5;
 
+#if 1    
+    float4x4 view = UNITY_MATRIX_V;
+    view._m03_m13_m23 = 0.0;
+    float3 shiftV = mul(UNITY_MATRIX_V._m03_m13_m23, view);
+    //shiftV *= 0.1749606 / 1.5;
+    shiftV *= (1.0001 / 0.5774) / 1.5;
+
+    float4 wpos = mul(unity_ObjectToWorld, vertex / _EEWorldRadius);
+    float3 wnormal = UnityObjectToWorldNormal(normal);
+    o.worldPos = wpos;
+
+    wpos.xyz *= 1.0001;
+    //wpos.y = tan(wpos.y) * sqrt(1.0 + dot(wpos.xz, wpos.xz));// If useTanH
+
+    float4x4 i_GyrVec = UNITY_ACCESS_INSTANCED_PROP(Props, _GyrVec);
+    wpos.xyz /= sqrt(1 + dot(wpos.xyz,wpos.xyz)) + 1.0;
+    wpos.xyz = mobius_add(wpos.xyz, i_GyrVec._m03_m13_m23, wnormal);
+    wpos.xyz = mul(i_GyrVec, wpos.xyz);
+    wnormal = mul(i_GyrVec, wnormal);
+    wpos.xyz = mobius_add(wpos.xyz * _EEWorldRadius, shiftV, wnormal);
+
+    if (_Activate)
+        // Euclidean pos to Screen pos
+        o.pos = mul(UNITY_MATRIX_P, mul(view, wpos));
+    else
+        o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
+#elif 0
     // Vertex pos to Chunk pos
     float4 wpos = mul(unity_ObjectToWorld, vertex);
     // Chunk pos to Spherical pos
-    wpos = reverseStereographicalProjection(wpos, _TileOrigin, _SphereOrigin, _SphereRadius);
+    wpos = reverseStereographicalProjection(wpos, _TileOrigin, _SphereOrigin, _EEWorldRadius);
     o.worldPos = wpos;
     // Spherical pos to Euclidean pos
-    //float4 cameraPos = reverseStereographicalProjection(_Camera, _Camera, _SphereOrigin, _SphereRadius);
-    wpos = stereographicalProjection(wpos, _Camera, _SphereOrigin, _SphereRadius);//_SphereOrigin - ((normalize(_Camera)*_SphereRadius) - _SphereOrigin));
+    //float4 cameraPos = reverseStereographicalProjection(_Camera, _Camera, _SphereOrigin, _EEWorldRadius);
+    wpos = stereographicalProjection(wpos, _Camera, _SphereOrigin, _EEWorldRadius);//_SphereOrigin - ((normalize(_Camera)*_EEWorldRadius) - _SphereOrigin));
 
     if (_Activate)
         // Euclidean pos to Screen pos
         o.pos = mul(UNITY_MATRIX_VP, wpos);
     else
         o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
+#endif
     return o;
     //float4 worldPos = float4(mul(unity_ObjectToWorld, vertex).xyz / _Radius,1);
     //worldPos = worldToSpherical(worldPos);
@@ -260,7 +342,7 @@ void geometry(triangle v2g input[3], inout TriangleStream<g2f> OutputStream)
     OutputStream.RestartStrip();
 }
 
-fixed4 fragment(g2f i) : SV_Target
+fixed4 fragment(v2g i) : SV_Target
 {
     return i.color;
 }

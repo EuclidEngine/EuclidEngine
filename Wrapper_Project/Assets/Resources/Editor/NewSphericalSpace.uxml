@@ -1,0 +1,26 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement style="flex-direction: column; align-items: flex-start; justify-content: center;">
+        <Style src="EuclidEngine_Style.uss" />
+        <uie:ToolbarMenu text="Panel" style="flex-direction: row; -unity-text-align: upper-center; white-space: nowrap; align-items: stretch; justify-content: center;">
+            <uie:ToolbarButton text="Button1" />
+            <uie:ToolbarButton text="Button2" />
+        </uie:ToolbarMenu>
+        <uie:ToolbarPopupSearchField focusable="true" tooltip="Search bar" style="width: 97%; margin-right: 5px; margin-top: 5px; margin-bottom: 5px; margin-left: 5px;" />
+    </ui:VisualElement>
+    <ui:ScrollView>
+        <Style src="EuclidEngine_Style.uss" />
+        <ui:Foldout text="Title" value="true" style="align-items: stretch; justify-content: space-between; flex-direction: column; width: 100%;">
+            <ui:VisualElement style="align-items: center; justify-content: space-around; flex-direction: column-reverse; width: 100%;">
+                <ui:Label text="Euclid Engine" style="-unity-text-align: upper-center; font-size: 18px; -unity-font-style: bold;" />
+                <ui:Label style="-unity-text-align: middle-center; white-space: nowrap; background-image: resource(&apos;Icons/logo&apos;); width: 200px; height: 200px; -unity-background-image-tint-color: rgba(255, 255, 255, 0.19);" />
+            </ui:VisualElement>
+        </ui:Foldout>
+        <ui:Foldout text="Functionnalities">
+            <ui:ScrollView mode="VerticalAndHorizontal" name="Scroll" class="ScrollView" style="margin-left: 6px; margin-right: 6px; margin-top: 6px; margin-bottom: 6px; background-color: rgba(0, 0, 0, 0.11); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; border-left-color: rgba(255, 255, 255, 0.3); border-right-color: rgba(255, 255, 255, 0.3); border-top-color: rgba(255, 255, 255, 0.3); border-bottom-color: rgba(255, 255, 255, 0.3); padding-left: 4px; padding-right: 4px; padding-top: 4px; padding-bottom: 4px; flex-direction: row; width: auto;">
+                <ui:VisualElement style="flex-direction: row; align-items: flex-start; justify-content: center;">
+                    <ui:Button name="CreateNonEuclideanArea" text="Create Non Euclidean Area" class="quicktool-button" style="-unity-background-scale-mode: scale-to-fit; -unity-text-align: middle-center; -unity-font-style: bold; font-size: 18px; width: auto;" />
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:Foldout>
+    </ui:ScrollView>
+</ui:UXML>
