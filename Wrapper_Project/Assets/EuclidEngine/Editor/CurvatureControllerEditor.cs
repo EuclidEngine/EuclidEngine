@@ -9,7 +9,7 @@ namespace EuclidEngine
     [InitializeOnLoad]
     public class CurvatureControllerEditor : Editor
     {
-        SerializedProperty curv;
+        SerializedProperty worldCurvature;
         static Texture2D logoTexture = null;
 
         /// @brief Editor Constructor
@@ -17,7 +17,7 @@ namespace EuclidEngine
         {
             if (logoTexture == null)
                 logoTexture = Resources.Load("img/background") as Texture2D;
-            curv = serializedObject.FindProperty("curv");
+            worldCurvature = serializedObject.FindProperty("worldCurvature");
         }
         public override void OnInspectorGUI()
         {
@@ -29,7 +29,7 @@ namespace EuclidEngine
 
             serializedObject.Update();
             EditorGUILayout.LabelField("Main Settings:");
-            EditorGUILayout.PropertyField(curv);
+            EditorGUILayout.PropertyField(worldCurvature);
             serializedObject.ApplyModifiedProperties();
         }
     }
