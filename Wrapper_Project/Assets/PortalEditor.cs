@@ -41,6 +41,8 @@ namespace EuclidEngine
             serializedObject.Update();
             if (foldedMain = EditorGUILayout.Foldout(foldedMain, "Main Settings :"))
             {
+                if (linkedPortal.objectReferenceValue == null)
+                    EditorGUILayout.HelpBox("Don't forget to link it to another portal", MessageType.Error);
                 EditorGUILayout.PropertyField(linkedPortal);
                 EditorGUILayout.PropertyField(screen);
                 EditorGUILayout.PropertyField(recursionLimit);

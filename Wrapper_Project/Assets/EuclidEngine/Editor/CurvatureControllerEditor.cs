@@ -27,6 +27,8 @@ namespace EuclidEngine
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
 
+            EditorGUILayout.HelpBox("Don't forget to apply Curved Shaders to the objects under this parent", MessageType.Warning);
+
             serializedObject.Update();
             EditorGUILayout.LabelField("Main Settings:");
             EditorGUILayout.PropertyField(worldCurvature);
