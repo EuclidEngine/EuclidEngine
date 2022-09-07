@@ -130,17 +130,17 @@ namespace EuclidEngine
             _camera.targetTexture = new RenderTexture(Screen.width, Screen.height, 0);
 
             GameObject planePrefab = Resources.Load("Prefab/New Sprite") as GameObject;
-            _planeBack = Instantiate(planePrefab, new Vector3(0, _size.y / 2, -_size.z / 2f), Quaternion.LookRotation(Vector3.forward, transform.up), transform)
+            _planeBack = Instantiate(planePrefab, transform.position + new Vector3(0, _size.y / 2, -_size.z / 2f), Quaternion.LookRotation(Vector3.forward, transform.up), transform)
                             .GetComponent<AreaPlane>();
-            _planeFront = Instantiate(planePrefab, new Vector3(0, _size.y / 2, _size.z / 2f), Quaternion.LookRotation(Vector3.back, transform.up), transform)
+            _planeFront = Instantiate(planePrefab, transform.position + new Vector3(0, _size.y / 2, _size.z / 2f), Quaternion.LookRotation(Vector3.back, transform.up), transform)
                             .GetComponent<AreaPlane>();
-            _planeRight = Instantiate(planePrefab, new Vector3(_size.x / 2f, _size.y / 2, 0), Quaternion.LookRotation(Vector3.left, transform.up), transform)
+            _planeRight = Instantiate(planePrefab, transform.position + new Vector3(_size.x / 2f, _size.y / 2, 0), Quaternion.LookRotation(Vector3.left, transform.up), transform)
                             .GetComponent<AreaPlane>();
-            _planeLeft = Instantiate(planePrefab, new Vector3(-_size.x / 2f, _size.y / 2, 0), Quaternion.LookRotation(Vector3.right, transform.up), transform)
+            _planeLeft = Instantiate(planePrefab, transform.position + new Vector3(-_size.x / 2f, _size.y / 2, 0), Quaternion.LookRotation(Vector3.right, transform.up), transform)
                             .GetComponent<AreaPlane>();
-            _planeTop = Instantiate(planePrefab, new Vector3(0, _size.y, 0), Quaternion.LookRotation(Vector3.down, transform.forward), transform)
+            _planeTop = Instantiate(planePrefab, transform.position + new Vector3(0, _size.y, 0), Quaternion.LookRotation(Vector3.down, transform.forward), transform)
                             .GetComponent<AreaPlane>();
-            _planeBottom = Instantiate(planePrefab, new Vector3(0, 0, 0), Quaternion.LookRotation(Vector3.up, -transform.forward), transform)
+            _planeBottom = Instantiate(planePrefab, transform.position + new Vector3(0, 0, 0), Quaternion.LookRotation(Vector3.up, -transform.forward), transform)
                             .GetComponent<AreaPlane>();
 
             //set game object name for each plane

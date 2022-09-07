@@ -131,7 +131,7 @@ namespace EuclidEngine
             {
                 if (i != 0 && i % _NumberOfPieces == 0)
                     ++k;
-                Walls.Add(Instantiate(myPrefab, _positions[k], Quaternion.LookRotation(_rotations[k].Item1, _rotations[k].Item2), transform));
+                Walls.Add(Instantiate(myPrefab, transform.position + _positions[k], Quaternion.LookRotation(_rotations[k].Item1, _rotations[k].Item2), transform));
             }
 
             // Set Wall size
