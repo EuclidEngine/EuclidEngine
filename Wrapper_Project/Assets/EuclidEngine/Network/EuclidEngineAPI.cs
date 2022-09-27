@@ -27,6 +27,16 @@ public class EuclidEngineAPI : MonoBehaviour
     static Action<string> s_requestCallback;
     static public string bearerToken = "";
 
+    public static HttpWebResponse PostCheckLicense(string email)
+    {
+        Debug.Log("Username : " + email);
+        string jsonBody;
+        jsonBody = "{" +
+            "\"consumer_email\": \"" + email + "\"" +
+            "}";
+        return SendPostRequest("/checkLicence", LicenceManagerPort, jsonBody);
+    }
+
     public static HttpWebResponse Login(string email, string password)
     {
         string jsonBody;

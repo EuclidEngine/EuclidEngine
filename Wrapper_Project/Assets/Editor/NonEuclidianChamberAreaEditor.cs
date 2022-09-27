@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Events;
+using System;
 
 [CustomEditor(typeof(EuclidEngineChamberArea)), CanEditMultipleObjects]
 [InitializeOnLoad]
@@ -15,12 +17,10 @@ public class NonEuclidianChamberAreaEditor : Editor
     SerializedProperty InternalSize;
     SerializedProperty TransitSize;
     SerializedProperty NumberOfPieces;
-    SerializedProperty BackSide;
-    SerializedProperty FrontSide;
-    SerializedProperty LeftSide;
-    SerializedProperty RightSide;
-    SerializedProperty TopSide;
-    SerializedProperty BottomSide;
+    int NumberOfPiecesPerSide = 0;
+    List<int[,]> toSave = new List<int[,]>();
+
+    EuclidEngineChamberArea test;
 
     int selected = 0;
     string[] options = new string[]
@@ -29,6 +29,53 @@ public class NonEuclidianChamberAreaEditor : Editor
     };
 
     static Texture2D logoTexture = null;
+
+    private void LoadArray()
+    {
+        if (!PlayerPrefs.HasKey("Length"))
+        {
+            Debug.Log("Connarxd");
+            return;
+        }
+
+        // For each face
+        if (PlayerPrefs.GetInt("Length") != NumberOfPieces.intValue)
+        {
+            Debug.Log("C'est la que ça coince");
+            test.changeY(PlayerPrefs.GetInt("Length"));
+            NumberOfPiecesPerSide = PlayerPrefs.GetInt("Length");
+            NumberOfPieces.intValue = PlayerPrefs.GetInt("Length");
+        }
+        else
+            test.changeY(NumberOfPieces.intValue);
+
+        toSave.Clear();
+        for (int i = 0; i < 6; ++i)
+            toSave.Add(new int[NumberOfPieces.intValue, NumberOfPieces.intValue]);
+
+        for (int i = 0; i < 6; ++i)
+        {
+            if (PlayerPrefs.HasKey(options[i]))
+            {
+                for (int j = 0; j < NumberOfPieces.intValue; ++j) {
+                    string []side = PlayerPrefs.GetString(options[i]).Split(char.Parse("\n"));
+                    int[] nums = new int[NumberOfPieces.intValue];
+                    for (int k = 0; k < NumberOfPieces.intValue; ++k)
+                    {
+                        Debug.Log(side[k]);
+                        nums = Array.ConvertAll<string, int>(side[k].Split(','), int.Parse);
+                        for (int l = 0; l < NumberOfPieces.intValue; ++l)
+                        {
+                            test.ArrayOfSides[i][k, l] = (nums[l] == 1) ? true : false;
+                            //test.modifySide(i, test.ArrayOfSides[i][k, l], k, l);
+                            toSave[i][l, k] = (test.ArrayOfSides[i][k, l]) ? 1 : 0;
+                        }
+                    }
+                }
+            }
+        }
+        Debug.Log("Je suis à la fin de l'array");
+    }
 
     /// @brief Editor Constructor
     void OnEnable()
@@ -42,27 +89,24 @@ public class NonEuclidianChamberAreaEditor : Editor
         InternalSize = serializedObject.FindProperty("_internalSize");
         TransitSize = serializedObject.FindProperty("_transitSize");
         NumberOfPieces = serializedObject.FindProperty("NumberOfPieces");
-        BackSide = serializedObject.FindProperty("BackSide");
-        FrontSide = serializedObject.FindProperty("FrontSide");
-        LeftSide = serializedObject.FindProperty("LeftSide");
-        RightSide = serializedObject.FindProperty("RightSide");
-        TopSide = serializedObject.FindProperty("TopSide");
-        BottomSide = serializedObject.FindProperty("BottomSide");
+
+        test = target as EuclidEngineChamberArea;
+        EditorUtility.SetDirty(test);
+        test.changeY(NumberOfPieces.intValue);
+
+        for (int i = 0; i < 6; ++i)
+            toSave.Add(new int[NumberOfPieces.intValue, NumberOfPieces.intValue]);
+        LoadArray();
+        NumberOfPiecesPerSide = NumberOfPieces.intValue;
     }
 
     private void CheckWholeSide(int selected, bool check)
     {
-        SerializedProperty[] side = { BackSide, FrontSide, RightSide, LeftSide, TopSide, BottomSide };
-
-      
-        for (int j = 0; j < NumberOfPieces.intValue; ++j)
+        for (int y = 0; y < EuclidEngineChamberArea.Y; y++)
         {
-            SerializedProperty property = side[selected].GetArrayElementAtIndex(j);
-            property.Next(true);
-            for (int k = 0; k < NumberOfPieces.intValue; ++k)
+            for (int x = 0; x < EuclidEngineChamberArea.Y; x++)
             {
-                SerializedProperty result = property.GetArrayElementAtIndex(k);
-                result.boolValue = check;
+                test.ArrayOfSides[selected][x, y] = check;
             }
         }
     }
@@ -70,6 +114,8 @@ public class NonEuclidianChamberAreaEditor : Editor
     // Start is called before the first frame update
     public override void OnInspectorGUI()
     {
+        test = target as EuclidEngineChamberArea;
+        GUI.changed = false;
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
         GUILayout.Label(logoTexture, GUILayout.Height(75), GUILayout.Width(75));
@@ -87,74 +133,106 @@ public class NonEuclidianChamberAreaEditor : Editor
         EditorGUILayout.PropertyField(InternalSize);
         EditorGUILayout.PropertyField(TransitSize);
 
-        if (NumberOfPieces.intValue < 1)
-            NumberOfPieces.intValue = 1;
-        BackSide.arraySize = NumberOfPieces.intValue;
-        FrontSide.arraySize = NumberOfPieces.intValue;
-        RightSide.arraySize = NumberOfPieces.intValue;
-        LeftSide.arraySize = NumberOfPieces.intValue;
-        TopSide.arraySize = NumberOfPieces.intValue;
-        BottomSide.arraySize = NumberOfPieces.intValue;
-        for (int i = 0; i < NumberOfPieces.intValue; ++i) {
 
-            SerializedProperty property = BackSide.GetArrayElementAtIndex(i);
-            property.Next(true);
-            property.arraySize = NumberOfPieces.intValue;
-
-            property = FrontSide.GetArrayElementAtIndex(i);
-            property.Next(true);
-            property.arraySize = NumberOfPieces.intValue;
-
-            property = LeftSide.GetArrayElementAtIndex(i);
-            property.Next(true);
-            property.arraySize = NumberOfPieces.intValue;
-
-            property = RightSide.GetArrayElementAtIndex(i);
-            property.Next(true);
-            property.arraySize = NumberOfPieces.intValue;
-
-            property = TopSide.GetArrayElementAtIndex(i);
-            property.Next(true);
-            property.arraySize = NumberOfPieces.intValue;
-
-            property = BottomSide.GetArrayElementAtIndex(i);
-            property.Next(true);
-            property.arraySize = NumberOfPieces.intValue;
-        }
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Side Modification:");
-        EditorGUILayout.PropertyField(NumberOfPieces);
+        GUILayout.BeginHorizontal();
+        NumberOfPiecesPerSide = EditorGUILayout.IntField(NumberOfPiecesPerSide);
+
+        //EditorGUILayout.PropertyField(NumberOfPieces);
+
+        if (NumberOfPieces.intValue < 1)
+            NumberOfPieces.intValue = 1;
+        if (NumberOfPiecesPerSide < 1)
+            NumberOfPiecesPerSide = 1;
+
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+
+        if (GUILayout.Button("Validate numbers of pieces per side"))
+        {
+            NumberOfPieces.intValue = NumberOfPiecesPerSide;
+            EuclidEngineChamberArea.Y = NumberOfPieces.intValue;
+            test.changeY(EuclidEngineChamberArea.Y);
+            toSave.Clear();
+            for (int i = 0; i < 6; ++i)
+                toSave.Add(new int[NumberOfPieces.intValue, NumberOfPieces.intValue]);
+        }
+        GUILayout.EndHorizontal();
+        EditorGUILayout.Space();
+
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Check whole side"))
             CheckWholeSide(selected, true);
         if (GUILayout.Button("Uncheck whole side"))
             CheckWholeSide(selected, false);
         GUILayout.EndHorizontal();
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+
         selected = EditorGUILayout.Popup("Side to edit", selected, options);
-        switch (selected)
+
+        // Print Beautiful and scalable array
+        EditorGUILayout.Space();
+        EditorGUILayout.BeginHorizontal();
+        for (int y = 0; y < EuclidEngineChamberArea.Y; y++)
         {
-            case 0:
-                EditorGUILayout.PropertyField(BackSide);
-                break;
-            case 1:
-                EditorGUILayout.PropertyField(FrontSide);
-                break;
-            case 2:
-                EditorGUILayout.PropertyField(RightSide);
-                break;
-            case 3:
-                EditorGUILayout.PropertyField(LeftSide);
-                break;
-            case 4:
-                EditorGUILayout.PropertyField(TopSide);
-                break;
-            case 5:
-                EditorGUILayout.PropertyField(BottomSide);
-                break;
-            default:
-                break;
+            EditorGUILayout.BeginVertical();
+            for (int x = 0; x < EuclidEngineChamberArea.Y; x++)
+            {
+                test.ArrayOfSides[selected][x, y] = EditorGUILayout.Toggle(test.ArrayOfSides[selected][x, y]);
+                //test.modifySide(selected, test.ArrayOfSides[selected][x, y], y, x);
+                toSave[selected][x, y] = (test.ArrayOfSides[selected][x, y]) ? 1 : 0;
+            }
+            EditorGUILayout.EndVertical();
         }
+        EditorGUILayout.EndHorizontal();
+
+        if (GUILayout.Button("Save modification made to side"))
+            SetKeySide();
+
+        if (GUI.changed)
+            EditorUtility.SetDirty(test);
+
         serializedObject.ApplyModifiedProperties();
     }
 
+    private void SetKeySide()
+    {
+
+        if (NumberOfPiecesPerSide != 1 && test.Walls.Count != 0 && !test.check())
+        {
+            Debug.Log("Check failed");
+            return;
+        }
+
+        NumberOfPieces.intValue = NumberOfPiecesPerSide;
+        PlayerPrefs.SetInt("Length", NumberOfPieces.intValue);
+
+        for (int num = 0; num < 6; ++num)
+        {
+            string saveSide = "";
+
+            for (int i = 0; i < NumberOfPieces.intValue; ++i)
+            {
+                if (i != 0)
+                    saveSide += "\n";
+                for (int j = 0; j < NumberOfPieces.intValue; ++j)
+                {
+                    saveSide += string.Join(",", (test.ArrayOfSides[num][i, j]) ? 1 : 0);
+                    saveSide += (1 + j == NumberOfPieces.intValue) ? "" : ",";
+                }
+            }
+
+            PlayerPrefs.SetInt("Length", NumberOfPieces.intValue);
+            PlayerPrefs.SetString(options[num], saveSide);
+            Debug.Log(PlayerPrefs.GetString(options[num]));
+        }
+        PlayerPrefs.Save();
+        Debug.Log("Has been saved: " + PlayerPrefs.GetInt("Length"));
+        test.UpdateFaces();
+    }
 }
