@@ -23,7 +23,20 @@ public class ColliderTest_Demo : MonoBehaviour
         FPSController pit;
         if (other.gameObject.TryGetComponent(out pit))
         {
-            curvController.UpdateCurv(0.0f);
+            StartCoroutine(UpdateCurvProgressively(0.5f));
         }
+    }
+
+    IEnumerator UpdateCurvProgressively(float delay)
+    {
+        float start = curvController.worldCurvature;
+        float curs = 0.0f;
+        while (curs < delay)
+        {
+            curs += Time.deltaTime;
+            curvController.UpdateCurv(Mathf.Lerp(start, 0.0f, curs / delay));
+            yield return null;
+        }
+        yield return null;
     }
 }
