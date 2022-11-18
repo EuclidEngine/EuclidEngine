@@ -9,6 +9,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections;
 using System.Text;
 
+#if UNITY_EDITOR
+
 [InitializeOnLoad]
 [ExecuteInEditMode]
 public class EuclidEngineAPI : MonoBehaviour
@@ -39,6 +41,20 @@ public class EuclidEngineAPI : MonoBehaviour
         bearerToken = responseString;
         //Debug.Log("Token is: " + responseString);
         return(response);
+    }
+
+    public static HttpWebResponse SendPlaytime(string email, double playtime)
+    {
+        string jsonBody;
+        jsonBody = "{" +
+            "\"email\": \"" + email + "\"," +
+            "\"playtime\": \"" + playtime.ToString() + "\"" +
+            "}";
+        HttpWebResponse response = SendPostRequest("/playtime", AuthControllerPort, jsonBody);
+        string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
+        bearerToken = responseString;
+        //Debug.Log("Token is: " + responseString);
+        return (response);
     }
 
     public static HttpWebResponse SendTicket(string ticket_object, string ticket_message, string ticket_image)
@@ -152,3 +168,5 @@ public class EuclidEngineAPI : MonoBehaviour
     //    EditorApplication.update -= EditorUpdate;
     //}
 }
+
+#endif

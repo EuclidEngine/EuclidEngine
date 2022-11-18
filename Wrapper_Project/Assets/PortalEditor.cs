@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+#if UNITY_EDITOR
 namespace EuclidEngine
 {
     [CustomEditor(typeof(Portal)), CanEditMultipleObjects]
     [InitializeOnLoad]
-    public class PortalEditor : Editor
+    public class PortalEditor : UnityEditor.Editor
     {
         SerializedProperty nearClipOffset;
         SerializedProperty nearClipLimit;
@@ -57,3 +58,4 @@ namespace EuclidEngine
         }
     }
 }
+#endif

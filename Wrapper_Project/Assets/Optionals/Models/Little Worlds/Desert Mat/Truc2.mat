@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Sky 1
-  m_Shader: {fileID: 4800000, guid: 3c1455edc49af4cc49c1cae67fb2dba3, type: 3}
+  m_Name: Truc2
+  m_Shader: {fileID: 4800000, guid: a8af23fd8ce59644b8d18527675e48ad, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -57,6 +57,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
+    - _Curvature: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -73,8 +74,5 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 0.6367924, g: 0.8322844, b: 1, a: 1}
-    - _ColorA: {r: 0, g: 0.04419523, b: 0.20784314, a: 1}
-    - _ColorB: {r: 0.70127267, g: 0.84916157, b: 0.9716981, a: 1}
-    - _ColorC: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
