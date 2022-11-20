@@ -775,8 +775,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _size: {x: 10, y: 4, z: 10}
-  _internalSize: {x: 4, y: 4, z: 4}
+  _internalSize: {x: 3, y: 3, z: 3}
   _transitSize: {x: 0, y: 0, z: 0}
+  pos: {x: 0, y: 0, z: 0}
   BackSide:
   - row: 000000000000000000000000000000
   - row: 000000000000000000000000000000
@@ -876,7 +877,7 @@ MonoBehaviour:
   NumberOfPieces: 1
   EditorNumberOfPieces: 1
   myPrefab: {fileID: 1972096183}
-  WallMaterial: {fileID: 15303, guid: 0000000000000000f000000000000000, type: 0}
+  WallMaterial: {fileID: 2100000, guid: a7c4e4ab54d3945f294f10d0a62ac9dd, type: 2}
   WallThickness: 0.5
   Walls: []
 --- !u!54 &1002641172

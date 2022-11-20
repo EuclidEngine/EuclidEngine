@@ -10,13 +10,13 @@ public class CurvatureController : MonoBehaviour
         
     }
 
-    public float curv = 0.0f;
+    public float worldCurvature = 0.0f;
 
     // Update is called once per frame
     void Update()
     {
         var add = (Input.GetKey(KeyCode.UpArrow) ? 1 : Input.GetKey(KeyCode.DownArrow) ? -1 : 0);
-        curv += 0.05f * add * Time.deltaTime;
+        worldCurvature += 0.05f * add * Time.deltaTime;
 
         var renderers = gameObject.GetComponentsInChildren<Renderer>();
 
@@ -26,7 +26,7 @@ public class CurvatureController : MonoBehaviour
             {
                 if (sMaterial && sMaterial.HasProperty("_Curvature"))
                 {
-                    sMaterial.SetFloat("_Curvature", curv);
+                    sMaterial.SetFloat("_Curvature", worldCurvature);
                 }
             }
         }

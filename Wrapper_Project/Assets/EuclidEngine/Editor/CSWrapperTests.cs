@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using NUnit.Framework;
 using System.Threading;
+using EuclidEngine;
 
 public class CSWrapperTests
 {
@@ -21,7 +22,7 @@ public class CSWrapperTests
         //2,2,2,1,1,1
         try
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(2, 2, 2), new Vector3(1, 1, 1), Vector3.zero, Quaternion.identity);
+            Area TestArea = Area.Instantiate(new Vector3(2, 2, 2), new Vector3(1, 1, 1), Vector3.zero, Quaternion.identity);
             Assert.That(true);
         }
         catch
@@ -36,7 +37,7 @@ public class CSWrapperTests
     {
         try
         {
-            EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(2, 2, 2), new Vector3(1, 1, 1), Vector3.zero, Quaternion.identity);
+            Area TestArea = Area.Instantiate(new Vector3(2, 2, 2), new Vector3(1, 1, 1), Vector3.zero, Quaternion.identity);
             GameObject TestObject = new GameObject();
             TestObject.transform.position = Vector3.zero;
             TestObject.AddComponent<Other>();

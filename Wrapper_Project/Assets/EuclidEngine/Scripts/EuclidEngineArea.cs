@@ -22,33 +22,29 @@ using System.Runtime.InteropServices;
 /// @ingroup cs
 public class EuclidEngineArea : MonoBehaviour
 {
-#region C++ functions
     /************************************************/
     /*                                              */
     /*           C++ functions prototype            */
     /*                                              */
     /************************************************/
 
-    [DllImport(EuclidEngine.plugin)] private static extern IntPtr EEAreaCreate(double eX, double eY, double eZ, double iX, double iY, double iZ);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaDelete(IntPtr area);
-        private delegate void PositionGetterFn(IntPtr go, ref double x, ref double y, ref double z);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetAreaPositionGetterCallback(IntPtr area, PositionGetterFn callback);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetPositionGetterCallback(IntPtr area, PositionGetterFn callback);
-        private delegate void SizeGetterFn(IntPtr go, ref double minX, ref double minY, ref double minZ, ref double maxX, ref double maxY, ref double maxZ);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetSizeGetterCallback(IntPtr area, SizeGetterFn callback);
-        private delegate void ScalerFn(IntPtr go, double x, double y, double z);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetScalerCallback(IntPtr area, ScalerFn callback);
-    [DllImport(EuclidEngine.plugin)] protected static extern void EEAreaSetCameraPosition(IntPtr area, Vector3 position);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetSize(IntPtr area, double pExternX, double pExternY, double pExternZ);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetInternalSize(IntPtr area, double pInternX, double pInternY, double pInternZ);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaSetTransitAreaSize(IntPtr area, double sizeX, double sizeY, double sizeZ);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaAddObjectInside(IntPtr area, int objectId, IntPtr obj);
-    [DllImport(EuclidEngine.plugin)] private static extern void EEAreaRemoveObjectInside(IntPtr area, int objectId);
-    [DllImport(EuclidEngine.plugin)] protected static extern void EEAreaGetTransformMatrix(IntPtr area, Vector3 dir, out Matrix4x4 ret);
-    [DllImport(EuclidEngine.plugin)] protected static extern void EEAreaUpdate(IntPtr area);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern IntPtr EEAreaCreate(double eX, double eY, double eZ, double iX, double iY, double iZ);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern void EEAreaDelete(IntPtr area);
+    private delegate void PositionGetterFn(IntPtr go, ref double x, ref double y, ref double z);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] private static extern void EEAreaSetAreaPositionGetterCallback(IntPtr area, PositionGetterFn callback);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] private static extern void EEAreaSetPositionGetterCallback(IntPtr area, PositionGetterFn callback);
+    private delegate void SizeGetterFn(IntPtr go, ref double minX, ref double minY, ref double minZ, ref double maxX, ref double maxY, ref double maxZ);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] private static extern void EEAreaSetSizeGetterCallback(IntPtr area, SizeGetterFn callback);
+    private delegate void ScalerFn(IntPtr go, double x, double y, double z);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] private static extern void EEAreaSetScalerCallback(IntPtr area, ScalerFn callback);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern void EEAreaSetSize(IntPtr area, double pExternX, double pExternY, double pExternZ);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern void EEAreaSetInternalSize(IntPtr area, double pInternX, double pInternY, double pInternZ);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern void EEAreaSetTransitAreaSize(IntPtr area, double sizeX, double sizeY, double sizeZ);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern void EEAreaAddObjectInside(IntPtr area, int objectId, IntPtr obj);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern void EEAreaRemoveObjectInside(IntPtr area, int objectId);
+    [DllImport(EuclidEngine.EuclidEngine.plugin)] protected static extern void EEAreaUpdate(IntPtr area);
 
-#endregion
-#region Variables
+
     /************************************************/
     /*                                              */
     /*                   Variables                  */
@@ -64,24 +60,12 @@ public class EuclidEngineArea : MonoBehaviour
 
     // C# Area object
     protected BoxCollider _collider;
-    protected Camera _camera;
-    protected EEAreaPlane _planeRight;
-    protected EEAreaPlane _planeLeft;
-    protected EEAreaPlane _planeTop;
-    protected EEAreaPlane _planeBottom;
-    protected EEAreaPlane _planeFront;
-    protected EEAreaPlane _planeBack;
-
-    // Used later to sort all plane by they distance with the camera
-    protected List<KeyValuePair<EEAreaPlane, Vector3>> _sortAreaPlane = new List<KeyValuePair<EEAreaPlane, Vector3>>();
 
     // Area variables
-    [SerializeField] [Tooltip("Size")] protected private Vector3 _size = new Vector3(1, 1, 1);
-    [SerializeField] [Tooltip("Internal size")] private Vector3 _internalSize = new Vector3(1, 1, 1);
-    [SerializeField] [Tooltip("Transit size")] private Vector3 _transitSize = new Vector3(0, 0, 0);
+    [SerializeField] [Tooltip("Size")] protected Vector3 _size = new Vector3(1, 1, 1);
+    [SerializeField] [Tooltip("Internal size")] protected Vector3 _internalSize = new Vector3(1, 1, 1);
+    [SerializeField] [Tooltip("Transit size")] protected Vector3 _transitSize = new Vector3(0, 0, 0);
 
-#endregion
-#region Unity events
     /************************************************/
     /*                                              */
     /*             Unity events handler             */
@@ -117,57 +101,14 @@ public class EuclidEngineArea : MonoBehaviour
     }
 
     //Called on launch, after Awake
-    protected virtual void Start()
+    protected void Start()
     {
         _collider = GetComponent<BoxCollider>();
         _collider.size = _size + 2 * _transitSize;
-
-        _camera = Instantiate(new GameObject(), transform).AddComponent<Camera>();
-        _camera.gameObject.name = "Camera";
-        _camera.cullingMask &= (int)(0xFFFFFFFF ^ (1 << LayerMask.NameToLayer("toto")));
-        _camera.targetTexture = new RenderTexture(Screen.width, Screen.height, 0);
-
-        GameObject planePrefab = Resources.Load("Prefab/New Sprite") as GameObject;
-        _planeBack = Instantiate(planePrefab, new Vector3(0, _size.y / 2, -_size.z / 2f), Quaternion.LookRotation(Vector3.forward, transform.up), transform)
-                        .GetComponent<EEAreaPlane>();
-        _planeFront = Instantiate(planePrefab, new Vector3(0, _size.y / 2, _size.z / 2f), Quaternion.LookRotation(Vector3.back, transform.up), transform)
-                        .GetComponent<EEAreaPlane>();
-        _planeRight = Instantiate(planePrefab, new Vector3(_size.x / 2f, _size.y / 2, 0), Quaternion.LookRotation(Vector3.left, transform.up), transform)
-                        .GetComponent<EEAreaPlane>();
-        _planeLeft = Instantiate(planePrefab, new Vector3(-_size.x / 2f, _size.y / 2, 0), Quaternion.LookRotation(Vector3.right, transform.up), transform)
-                        .GetComponent<EEAreaPlane>();
-        _planeTop = Instantiate(planePrefab, new Vector3(0, _size.y, 0), Quaternion.LookRotation(Vector3.down, transform.forward), transform)
-                        .GetComponent<EEAreaPlane>();
-        _planeBottom = Instantiate(planePrefab, new Vector3(0, 0, 0), Quaternion.LookRotation(Vector3.up, -transform.forward), transform)
-                        .GetComponent<EEAreaPlane>();
-
-        //set game object name for each plane
-        _planeBack.gameObject.name = "Plane Back";
-        _planeRight.gameObject.name = "Plane Right";
-        _planeLeft.gameObject.name = "Plane Left";
-        _planeTop.gameObject.name = "Plane Top";
-        _planeBottom.gameObject.name = "Plane Bottom";
-        _planeFront.gameObject.name = "Plane Front";
-
-        //set camera for each plane
-        _planeBack.camera = _camera;
-        _planeRight.camera = _camera;
-        _planeLeft.camera = _camera;
-        _planeTop.camera = _camera;
-        _planeBottom.camera = _camera;
-        _planeFront.camera = _camera;
-
-        //set sortAreaPlane
-        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeBack, transform.forward));
-        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeFront, -transform.forward));
-        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeRight, -transform.right));
-        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeLeft, transform.right));
-        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeTop, -transform.up));
-        _sortAreaPlane.Add(new KeyValuePair<EEAreaPlane, Vector3>(_planeBottom, transform.up));
     }
 
     //Called at end (of object or scene)
-    protected virtual void OnDestroy()
+    void OnDestroy()
     {
         EEAreaDelete(_area);
     }
@@ -188,24 +129,11 @@ public class EuclidEngineArea : MonoBehaviour
     }
 
     //Called every frame
-    virtual protected void Update()
+    protected void Update()
     {
         EEAreaUpdate(_area);
-        UpdatePlanes();
-
-        EuclidEngineCamera eecam = Array.Find(Camera.main.GetComponents<EuclidEngineCamera>(), camera => camera.area == _area);
-        if (_collider.bounds.Contains(Camera.main.transform.position)) {
-            if (!eecam) {
-                eecam = Camera.main.gameObject.AddComponent<EuclidEngineCamera>();
-                eecam.area = _area;
-            }
-        } else if (eecam) {
-            Destroy(eecam);
-        }
     }
 
-#endregion
-#region Constructors
     /************************************************/
     /*                                              */
     /*                 Constructors                 */
@@ -270,11 +198,9 @@ public class EuclidEngineArea : MonoBehaviour
         return area;
     }
 
-#endregion
-#region Public properties
     /************************************************/
     /*                                              */
-    /*              C# public properties            */
+    /*              C# public functions             */
     /*                                              */
     /************************************************/
 
@@ -282,7 +208,8 @@ public class EuclidEngineArea : MonoBehaviour
     public Vector3 areaSize
     {
         get { return _size; }
-        set {
+        set
+        {
             if (value.x <= 0 || value.y <= 0 || value.z <= 0)
                 throw new ArgumentOutOfRangeException("size", "Size must be strictly positiv");
             _size = value;
@@ -295,7 +222,8 @@ public class EuclidEngineArea : MonoBehaviour
     public Vector3 internalSize
     {
         get { return _internalSize; }
-        set {
+        set
+        {
             if (value.x <= 0 || value.y <= 0 || value.z <= 0)
                 throw new ArgumentOutOfRangeException("internalSize", "Internal size must be strictly positiv");
             _internalSize = value;
@@ -307,7 +235,8 @@ public class EuclidEngineArea : MonoBehaviour
     public Vector3 transitionSize
     {
         get { return _transitSize; }
-        set {
+        set
+        {
             if (value.x < 0 || value.y < 0 || value.z < 0)
                 throw new ArgumentOutOfRangeException("transitSize", "Transition size cannot be negativ");
             _transitSize = value;
@@ -321,14 +250,6 @@ public class EuclidEngineArea : MonoBehaviour
     {
         get { return _size + 2 * _transitSize; }
     }
-
-#endregion
-#region Public methods
-    /************************************************/
-    /*                                              */
-    /*              C# public functions             */
-    /*                                              */
-    /************************************************/
 
     /// @brief Set the external and internal size of the EuclidEngineArea
     /// @param areaSize The external size, without the transition area
@@ -360,73 +281,14 @@ public class EuclidEngineArea : MonoBehaviour
         _collider.size = _size + 2 * _transitSize;
     }
 
-    #endregion
-    #region Private methods
+
     /************************************************/
     /*                                              */
     /*            C# private functions              */
     /*                                              */
     /************************************************/
-    virtual protected void UpdatePlanes()
-    {
-        _camera.transform.position = Camera.main.transform.position;
-        _camera.transform.rotation = Camera.main.transform.rotation;
-        EEAreaSetCameraPosition(_area, _camera.transform.position);
 
-        //set plane size
-        _planeBack.size =   new Vector2(_size.x, _size.y);
-        _planeFront.size =  new Vector2(_size.x, _size.y);
-        _planeRight.size =  new Vector2(_size.z, _size.y);
-        _planeLeft.size =   new Vector2(_size.z, _size.y);
-        _planeTop.size =    new Vector2(_size.x, _size.z);
-        _planeBottom.size = new Vector2(_size.x, _size.z);
 
-        //update each plan with new camera matrix
-        Matrix4x4 transformMatrix;
-        List<KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float>> distances = new List<KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float>>();
-
-        for (short i = 0; i < 6; ++i) {
-            distances.Add(new KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float>(_sortAreaPlane[i],
-                Mathf.Sqrt(Mathf.Pow(_sortAreaPlane[i].Key.transform.position.x - _camera.transform.position.x, (float)2.0) +
-                Mathf.Pow(_sortAreaPlane[i].Key.transform.position.y - _camera.transform.position.y, (float)2.0) +
-                Mathf.Pow(_sortAreaPlane[i].Key.transform.position.z - _camera.transform.position.z, (float)2.0))));
-            _sortAreaPlane[i].Key.gameObject.layer |= LayerMask.NameToLayer("toto");
-        }
-
-        //sort distances
-        distances.Sort(delegate (KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float> a, KeyValuePair<KeyValuePair<EEAreaPlane, Vector3>, float> b)
-        {
-            return a.Value.CompareTo(b.Value);
-        });
-
-        //Reverse array so it is descending
-        distances.Reverse();
-
-        foreach (var item in distances)
-        {
-            EEAreaGetTransformMatrix(_area, item.Key.Value, out transformMatrix);
-            item.Key.Key.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
-            item.Key.Key.gameObject.layer ^= LayerMask.NameToLayer("toto");
-        }
-
-        /*
-        EEAreaGetTransformMatrix(_area, transform.forward, out transformMatrix);
-        _planeBack.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
-        EEAreaGetTransformMatrix(_area, -transform.forward, out transformMatrix);
-        _planeFront.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
-        EEAreaGetTransformMatrix(_area, -transform.right, out transformMatrix);
-        _planeRight.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
-        EEAreaGetTransformMatrix(_area, transform.right, out transformMatrix);
-        _planeLeft.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
-        EEAreaGetTransformMatrix(_area, -transform.up, out transformMatrix);
-        _planeTop.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
-        EEAreaGetTransformMatrix(_area, transform.up, out transformMatrix);
-        _planeBottom.UpdatePlane(Camera.main.worldToCameraMatrix, transformMatrix);
-        */
-    }
-
-#endregion
-#region C++ callbacks
     /************************************************/
     /*                                              */
     /*                 C++ callbacks                */
@@ -442,7 +304,7 @@ public class EuclidEngineArea : MonoBehaviour
 
     private void SetObjectPosition(IntPtr go, ref double x, ref double y, ref double z)
     {
-        Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
+        Collider collider = EuclidEngine.EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         x = collider.transform.position.x;
         y = collider.transform.position.z;
         z = collider.transform.position.y;
@@ -450,7 +312,7 @@ public class EuclidEngineArea : MonoBehaviour
 
     private void SetObjectSize(IntPtr go, ref double minx, ref double miny, ref double minz, ref double maxx, ref double maxy, ref double maxz)
     {
-        Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
+        Collider collider = EuclidEngine.EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         minx = collider.bounds.min.x;
         miny = collider.bounds.min.z;
         minz = collider.bounds.min.y;
@@ -461,8 +323,7 @@ public class EuclidEngineArea : MonoBehaviour
 
     private void ScaleObjetct(IntPtr go, double x, double y, double z)
     {
-        Collider collider = EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
+        Collider collider = EuclidEngine.EuclidEngine.FindObjectFromInstanceID((int)go) as Collider;
         collider.transform.localScale = new Vector3((float)x, (float)z, (float)y);
     }
-#endregion
 }
