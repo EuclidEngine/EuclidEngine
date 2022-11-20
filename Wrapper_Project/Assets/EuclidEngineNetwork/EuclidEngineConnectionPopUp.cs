@@ -4,6 +4,8 @@ using System.Net;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
+#if UNITY_EDITOR
+
 [System.Serializable]
 public class EuclidEngineData
 {
@@ -53,6 +55,7 @@ public class EuclidEngineData
 public class EuclidWindow : MonoBehaviour//EditorWindow
 {
     //private string url = "";
+    public static string publicUserEmail = "";
 
     private static bool IsNullOrEmpty(string s)
     {
@@ -96,6 +99,8 @@ public class EuclidWindow : MonoBehaviour//EditorWindow
         data.setUser(data.getDecodedString(data.getUser()));
         data.setMdp(data.getDecodedString(data.getMdp()));
 
+        publicUserEmail = data.getUser();
+
         return ConnectToEuclid(data.getUser(), data.getMdp());
     }
 
@@ -119,3 +124,5 @@ public class EuclidWindow : MonoBehaviour//EditorWindow
         }
     }
 }
+
+#endif

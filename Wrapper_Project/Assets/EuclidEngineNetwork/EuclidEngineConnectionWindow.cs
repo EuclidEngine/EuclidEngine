@@ -7,6 +7,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
+#if UNITY_EDITOR
 class EuclidEngineConnection : EditorWindow
 {
     private string username = "";
@@ -216,3 +217,4 @@ class EuclidEngineConnection : EditorWindow
         licenceFound = responseString.Contains("\"is_valid\":true") ? true : false;
     }
 }
+#endif

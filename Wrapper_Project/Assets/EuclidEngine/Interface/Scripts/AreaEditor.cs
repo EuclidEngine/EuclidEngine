@@ -2,6 +2,7 @@
 using UnityEngine;
 using System;
 
+#if UNITY_EDITOR
 namespace EuclidEngine
 {
     /// @brief Contains any code related to EuclidEngineArea Editor UI.
@@ -72,3 +73,4 @@ namespace EuclidEngine
         }
     }
 };
+#endif

@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
+#if UNITY_EDITOR
 public class EuclidEngineTicket : EditorWindow
 {
     private string ticket_object = "";
@@ -92,3 +93,4 @@ public class EuclidEngineTicket : EditorWindow
         this.Repaint();
     }
 }
+#endif

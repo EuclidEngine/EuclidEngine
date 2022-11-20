@@ -4,6 +4,8 @@ using UnityEngine.UIElements;
 using System;
 using System.Collections.Generic;
 
+#if UNITY_EDITOR
+
 namespace EuclidEngine
 {
     /// @brief Contains behavioral code concerning the main EuclidEngine plugin window.
@@ -144,3 +146,5 @@ namespace EuclidEngine
         }
     }
 };
+
+#endif
