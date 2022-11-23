@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using UnityEditor;
 using System;
 
@@ -48,4 +48,4 @@ public class MyEditorofTest : Editor
         EditorGUILayout.EndHorizontal();
 
     }
-}
+}*/

@@ -37,7 +37,7 @@ public class PTK_Pool : MonoBehaviour
             {
                 if (enigma.transform.localPosition.x >= 3.1 && enigma.transform.localPosition.x <= 3.45)
                 {
-                    if (enigma.transform.localPosition.y <= -3.12 && enigma.transform.localPosition.y >= -3.133)
+                    if (enigma.transform.localPosition.z >= 33.45 && enigma.transform.localPosition.z <= 33.49)
                     {
                         completed = true;
                         audioSource.PlayOneShot(clip, volume);

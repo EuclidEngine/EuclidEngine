@@ -106,17 +106,21 @@ namespace EuclidEngine
         //Called on collision
         void OnTriggerEnter(Collider c)
         {
+            Debug.Log(c.transform.root.tag);
+            Debug.Log(transform.tag);
 
             if (c.transform.root.CompareTag("NotEuclid") || (c.transform.root.CompareTag("Player") && !transform.CompareTag("NotEuclid")))
             {
+                Debug.Log("je suis censé passé par ici");
                 return;
             }
 
-            Debug.Log(name + "I enter");
+
             if (c.transform.root.CompareTag("Player"))
             {
-                c.GetComponent<FirstPersonMovement>().changeSpeed(1f, 1.7f);
-                c.GetComponent<Jump>().changeJumpForce(1);
+                Debug.Log("Jet suis dans le bon script");
+                c.GetComponent<FPSController>().changeSpeed(1f, 1.7f);
+                c.GetComponent<FPSController>().changeJumpForce(1.5f);
             }
             int id = c.GetInstanceID();
             EEAreaAddObjectInside(_area, id, (IntPtr)id);
@@ -125,15 +129,15 @@ namespace EuclidEngine
         //Called at the end of collision
         void OnTriggerExit(Collider c)
         {
-
             if (c.transform.root.CompareTag("NotEuclid") || (c.transform.root.CompareTag("Player") && !transform.CompareTag("NotEuclid")))
             {
                 return;
             }
+
             Debug.Log(name + " U exited");
             if (c.transform.root.CompareTag("Player")) {
-                c.GetComponent<FirstPersonMovement>().changeSpeed(4, 9);
-                c.GetComponent<Jump>().changeJumpForce(4);
+                c.GetComponent<FPSController>().changeSpeed(4, 8);
+                c.GetComponent<FPSController>().changeJumpForce(8);
             }
             EEAreaRemoveObjectInside(_area, c.GetInstanceID());
         }

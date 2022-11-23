@@ -11,13 +11,15 @@ public class Move : MonoBehaviour
     private int current_config = 0;
 
     bool go_back = false;
-    Vector3[] pos_base = new[] { new Vector3(-100, -100, -100), new Vector3(30.37f, 5.99f, 32.13f),
-        new Vector3(30.37f, 5.99f, 32.13f), new Vector3(30.37f, 3.99f, 32.13f) };
+    Vector3[] pos_base = new[] { new Vector3(-100, -100, -100), new Vector3(39.22f, -118.34f, 36f),
+        new Vector3(39.22f, -120.34f, 36f), new Vector3(36.22f, -121.34f, 36f) };
 
-    private Vector3 goal1 = new Vector3(17.726f, 7.01f, 30.15f);
-    private Vector3 goal2 = new Vector3(30.37f, 5.99f, 32.13f);
-    private Vector3 goal3 = new Vector3(30.37f, 10.9f, 32.13f);
-    private Vector3 goal4 = new Vector3(30.37f, 3.99f, 32.13f);
+    private Vector3 goal1 = new Vector3(28.726f, -120, 36f);
+    private Vector3 goal2 = new Vector3(36.22f, -122.34f, 36f);
+    private Vector3 goal3 = new Vector3(36.22f, -115f, 36f);
+    private Vector3 goal4 = new Vector3(39.22f, -118.34f, 36f);
+    private Vector3 goal5 = new Vector3(31.726f, -114f, 36f);
+    private Vector3 goal6 = new Vector3(39.22f, -120.34f, 36f);
 
 
     // Start is called before the first frame update
@@ -48,21 +50,21 @@ public class Move : MonoBehaviour
             if (!go_back)
                 transform.position = Vector3.MoveTowards(transform.position, goal1, speed * Time.deltaTime);
             else
-                transform.position = Vector3.MoveTowards(transform.position, goal2, speed * Time.deltaTime);
-            if (transform.position.z >= 32.13f && transform.position.x >= 30.37f)
-                go_back = false;
-            else if (transform.position.z <= 30.15f)
+                transform.position = Vector3.MoveTowards(transform.position, goal4, speed * Time.deltaTime);
+            if (transform.position.x <= 28.726f)
                 go_back = true;
+            else if (transform.position.x >= 39.22f)
+                go_back = false;
         }
         if (config == 3)
         {
             if (!go_back)
-                transform.position = Vector3.MoveTowards(transform.position, goal1, speed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, goal5, speed * Time.deltaTime);
             else
-                transform.position = Vector3.MoveTowards(transform.position, goal2, speed * Time.deltaTime);
-            if (transform.position.z >= 32.13f && transform.position.x >= 30.37f)
+                transform.position = Vector3.MoveTowards(transform.position, goal6, speed * Time.deltaTime);
+            if (transform.position.x >= 39.22f)
                 go_back = false;
-            else if (transform.position.z <= 30.15f)
+            else if (transform.position.x <= 31.726f)
                 go_back = true;
         }
         if (config == 4)
@@ -70,10 +72,10 @@ public class Move : MonoBehaviour
             if (!go_back)
                 transform.position = Vector3.MoveTowards(transform.position, goal3, speed * Time.deltaTime);
             else
-                transform.position = Vector3.MoveTowards(transform.position, goal4, speed * Time.deltaTime);
-            if (transform.position.y <= 3.99f)
+                transform.position = Vector3.MoveTowards(transform.position, goal2, speed * Time.deltaTime);
+            if (transform.position.y <= -120f)
                 go_back = false;
-            else if (transform.position.y >= 10.9f)
+            else if (transform.position.y >= goal3.y)
                 go_back = true;
         }
     }

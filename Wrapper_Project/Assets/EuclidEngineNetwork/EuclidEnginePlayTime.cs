@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+#if UNITY_EDITOR
+
 public class EuclidEnginePlayTime
 {
     private double totalTime = 0.0f;
     private string name;
+
+    private void Start()
+    {
+    }
 
     public void SetName<T>()
     {
@@ -25,3 +31,5 @@ public class EuclidEnginePlayTime
         EuclidEngineAPI.SendPlaytime(EuclidWindow.publicUserEmail, name, (int)totalTime / 1000);
     }
 }
+
+#endif

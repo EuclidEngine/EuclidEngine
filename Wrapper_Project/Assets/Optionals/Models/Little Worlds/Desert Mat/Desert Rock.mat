@@ -57,11 +57,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _BumpScale: 1
-<<<<<<< HEAD:Wrapper_Project/Assets/Portals-master/Models/Little Worlds/Desert Mat/Desert Rock.mat
-    - _Curvature: -0.06221648
-=======
     - _Curvature: 0
->>>>>>> 92a6125d213d4550e781c6621219c1398179081f:Wrapper_Project/Assets/Optionals/Models/Little Worlds/Desert Mat/Desert Rock.mat
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0

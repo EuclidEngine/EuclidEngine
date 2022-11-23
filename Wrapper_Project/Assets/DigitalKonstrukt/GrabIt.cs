@@ -238,6 +238,7 @@ public class GrabIt : MonoBehaviour
 		if (!m_isHingeJoint)
 			Rotate();
 
+		Debug.Log("dezd");
 		Grab();
 
 		if (m_applyImpulse)

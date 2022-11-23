@@ -61,7 +61,7 @@ namespace EuclidEngine
 
         private void OnDestroy()
         {
-            pT.OnDestroy<EuclidEngine.Portal>();
+            pT.OnDestroy<Portal>();
         }
     }
 }

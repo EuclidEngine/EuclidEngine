@@ -113,6 +113,17 @@ public class FPSController : PortalTraveller {
 
     }
 
+    public void changeJumpForce(float new_jump_force)
+    {
+        jumpForce = new_jump_force;
+    }
+
+    public void changeSpeed(float new_speed, float new_run_speed)
+    {
+        walkSpeed = new_speed;
+        runSpeed = new_run_speed;
+    }
+
     public override void Teleport (Transform fromPortal, Transform toPortal, Vector3 pos, Quaternion rot) {
         transform.position = pos;
         Vector3 eulerRot = rot.eulerAngles;
