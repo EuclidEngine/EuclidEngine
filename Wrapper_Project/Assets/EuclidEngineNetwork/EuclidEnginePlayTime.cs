@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[InitializeOnLoad]
-public class EuclidEnginePlayTime : MonoBehaviour
+public class EuclidEnginePlayTime
 {
-    private double startingPoint = 0.0f;
-    // Start is called before the first frame update
-    void Start()
+    private double totalTime = 0.0f;
+    private string name;
+
+    public void SetName<T>()
     {
-        startingPoint = EditorApplication.timeSinceStartup;
+        name = typeof(T).ToString();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void AddTime()
     {
-        
+        totalTime += Time.deltaTime;
     }
 
-    private void OnApplicationQuit()
+    public void OnDestroy<T>()
     {
-        EuclidEngineAPI.SendPlaytime(EuclidWindow.publicUserEmail, EditorApplication.timeSinceStartup - startingPoint);
+        name = typeof(T).ToString();
+        Debug.Log("oprite tg: " + name);
+        EuclidEngineAPI.SendPlaytime(EuclidWindow.publicUserEmail, name, (int)totalTime / 1000);
     }
 }

@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CurvatureController : MonoBehaviour
+public class EuclidEngineCurvatureController : MonoBehaviour
 {
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     public void UpdateCurv(float curv)
@@ -39,5 +38,7 @@ public class CurvatureController : MonoBehaviour
         UpdateCurv(worldCurvature);
     }
 
-    
+    private void OnDestroy()
+    {
+    }
 }

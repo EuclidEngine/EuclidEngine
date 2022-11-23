@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ColliderTest_Demo : MonoBehaviour
 {
-    public CurvatureController curvController;
+    public EuclidEngineCurvatureController curvController;
 
     // Start is called before the first frame update
     void Start()
