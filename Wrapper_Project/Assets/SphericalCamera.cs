@@ -10,7 +10,6 @@ public class SphericalCamera : MonoBehaviour
 
     private Vector3 oldPos;
     private Vector4 position4;
-    private float worldRadius;
 
     private IntPtr _gv;
     public IntPtr gyroVector { get => _gv; }
@@ -18,9 +17,10 @@ public class SphericalCamera : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        worldRadius = FindObjectOfType<EuclidEngineSpace>().worldRadius;
         //sObj = GetComponent<SphericalObject>();
-        Vector3 pos = transform.position; Quaternion rot = transform.rotation;
+        float worldRadius = GetComponentInParent<EuclidEngineSpace>().worldRadius;
+        Vector3 pos = Vector3.zero;//transform.position / worldRadius;
+        Quaternion rot = transform.rotation;
         _gv = SphericalObject.new_GyroVector(in pos, in rot);
         if (SphericalObject.GyroVector_toMatrix(_gv, out Matrix4x4 m))
             Shader.SetGlobalMatrix("_CGyrVec", m);
@@ -34,45 +34,45 @@ public class SphericalCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector3 v = Vector3.zero;
-        Vector3 q = Vector3.zero;
+        // Vector3 v = Vector3.zero;
+        // Vector3 q = Vector3.zero;
         
-        if (Input.GetKey(KeyCode.UpArrow))
-            v.z += 1;
-        if (Input.GetKey(KeyCode.DownArrow))
-            v.z -= 1;
-        if (Input.GetKey(KeyCode.RightArrow))
-            v.x += 1;
-        if (Input.GetKey(KeyCode.LeftArrow))
-            v.x -= 1;
-        if (Input.GetKey(KeyCode.PageUp))
-            v.y += 1;
-        if (Input.GetKey(KeyCode.PageDown))
-            v.y -= 1;
+        // if (Input.GetKey(KeyCode.UpArrow))
+        //     v.z += 1;
+        // if (Input.GetKey(KeyCode.DownArrow))
+        //     v.z -= 1;
+        // if (Input.GetKey(KeyCode.RightArrow))
+        //     v.x += 1;
+        // if (Input.GetKey(KeyCode.LeftArrow))
+        //     v.x -= 1;
+        // if (Input.GetKey(KeyCode.PageUp))
+        //     v.y += 1;
+        // if (Input.GetKey(KeyCode.PageDown))
+        //     v.y -= 1;
          
-        if (Input.GetKey(KeyCode.Z))
-            transform.LookAt(transform.position + transform.forward + Vector3.up*Time.deltaTime);
-            //q.x -= 90;
-        if (Input.GetKey(KeyCode.S))
-            transform.LookAt(transform.position + transform.forward + Vector3.down*Time.deltaTime);
-            //q.x += 90;
-        if (Input.GetKey(KeyCode.Q))
-            transform.LookAt(transform.position + transform.forward - transform.right*Time.deltaTime);
-            //q.y += 90;
-        if (Input.GetKey(KeyCode.D))
-            transform.LookAt(transform.position + transform.forward + transform.right*Time.deltaTime);
-            //q.y -= 90;
+        // if (Input.GetKey(KeyCode.Z))
+        //     transform.LookAt(transform.position + transform.forward + Vector3.up*Time.deltaTime);
+        //     //q.x -= 90;
+        // if (Input.GetKey(KeyCode.S))
+        //     transform.LookAt(transform.position + transform.forward + Vector3.down*Time.deltaTime);
+        //     //q.x += 90;
+        // if (Input.GetKey(KeyCode.Q))
+        //     transform.LookAt(transform.position + transform.forward - transform.right*Time.deltaTime);
+        //     //q.y += 90;
+        // if (Input.GetKey(KeyCode.D))
+        //     transform.LookAt(transform.position + transform.forward + transform.right*Time.deltaTime);
+        //     //q.y -= 90;
 
-        if (v.sqrMagnitude > 0) {
-            v = v.normalized / 2.0f / worldRadius;
-            v *= Time.deltaTime;
-            Vector3 tmp = v;
-            //v *= Mathf.Tan(v.magnitude) / v.magnitude;
-            SphericalObject.GyroVector_move(_gv, in v);
-            //SphericalObject.GyroVector_alignUp(_gv);
-            SphericalObject.GyroVector_toMatrix(_gv, out Matrix4x4 m);
-            //print(m);
-        }
+        // if (v.sqrMagnitude > 0) {
+        //     v = v.normalized / 2.0f / worldRadius;
+        //     v *= Time.deltaTime;
+        //     Vector3 tmp = v;
+        //     //v *= Mathf.Tan(v.magnitude) / v.magnitude;
+        //     SphericalObject.GyroVector_move(_gv, in v);
+        //     //SphericalObject.GyroVector_alignUp(_gv);
+        //     SphericalObject.GyroVector_toMatrix(_gv, out Matrix4x4 m);
+        //     //print(m);
+        // }
         // if (q.sqrMagnitude > 0) {
         //     SphericalObject.GyroVector_rotate(_gv, in q2);
         // }

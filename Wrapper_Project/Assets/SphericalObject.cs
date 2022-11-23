@@ -7,7 +7,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class SphericalObject : MonoBehaviour
 {
-    public const string plugin = "mobius5";
+    public const string plugin = "mobius2";
 
     [DllImport("mobius3")] private static extern bool Mobius_addVec(in Vector3 pos, in Quaternion rot, in Vector3 vec, out Vector3 retPos, out Quaternion retRot);
     [DllImport("mobius3")] private static extern bool Mobius_addQuat(in Vector3 pos, in Quaternion rot, in Quaternion vec, out Vector3 retPos, out Quaternion retRot);
@@ -23,37 +23,35 @@ public class SphericalObject : MonoBehaviour
     private Vector3 pos = new Vector3();
     private Quaternion rot = new Quaternion(0,0,0,1);
     public Material shaderHolder;
-    private IntPtr _gv;
-    SphericalCamera c;
-    private float worldRadius;
-    
+    protected IntPtr _gv = IntPtr.Zero;
+    protected SphericalCamera c;
+    protected float worldRadius;
+
     new private SphericalCollider collider;
 
     // Start is called before the first frame update
-    void Start()
+    protected void Start()
     {
         worldRadius = GetComponentInParent<EuclidEngineSpace>().worldRadius;
         c = FindObjectOfType<SphericalCamera>();
         collider = gameObject.AddComponent<SphericalCollider>();
 
-        if (c.gameObject == gameObject) {
-            _gv = c.gyroVector;
-        } else {
-            SphericalShunk shunk = GetComponentInParent<SphericalShunk>();
-            Quaternion shunkRot = Quaternion.identity;//shunk.transform.rotation;
+        SphericalShunk shunk = GetComponentInParent<SphericalShunk>();
+        Quaternion shunkRot = shunk.transform.rotation;
 
-            pos = transform.position / worldRadius;// / 30.0f;
-            IntPtr shunkGv = new_GyroVector(in shunk.gyroPos, in shunkRot);
-            IntPtr localGv = new_GyroVector(in pos, in rot);
-            _gv = GyroVector_combine(shunkGv, localGv);
-            delete_GyroVector(shunkGv);
-            delete_GyroVector(localGv);
-        }
+        pos = transform.position / worldRadius / 30.0f;
+        IntPtr shunkGv = new_GyroVector(in shunk.gyroPos, in shunkRot);
+        IntPtr localGv = new_GyroVector(in pos, in rot);
+        _gv = GyroVector_combine(localGv, shunkGv);
+        // GyroVector_alignUp(_gv);
+        delete_GyroVector(shunkGv);
+        delete_GyroVector(localGv);
+
         pos = transform.position;
         if (GyroVector_toMatrix(_gv, out Matrix4x4 m)) {
-            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
-            List<Renderer> rs = new List<Renderer>(GetComponents<Renderer>());
+            List<Renderer> rs = new List<Renderer>();
             rs.AddRange(GetComponentsInChildren<Renderer>());
+            MaterialPropertyBlock propBlock = new MaterialPropertyBlock();
             foreach (Renderer r in rs) {
                 r.GetPropertyBlock(propBlock);
                 propBlock.SetMatrix("_GyrVec", m);
@@ -65,8 +63,9 @@ public class SphericalObject : MonoBehaviour
 
     void OnDestroy()
     {
-        if (c.gameObject != gameObject)
+        if (_gv != IntPtr.Zero && c.gameObject != gameObject)
             delete_GyroVector(_gv);
+        _gv = IntPtr.Zero;
     }
 
     // Update is called once per frame
@@ -132,8 +131,8 @@ public class SphericalObject : MonoBehaviour
         return collider.CheckCollision(_gv, other._gv, other.collider);
     }
 
-    public void OnTriggerEnter(Collider obj)
+    virtual public void OnTriggerEnter(Collider obj)
     {
-        print(("Collision", name, obj.name));
+        // print(("Collision", name, obj.name));
     }
 }

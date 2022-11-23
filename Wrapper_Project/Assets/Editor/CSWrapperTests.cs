@@ -39,7 +39,7 @@ public class CSWrapperTests
             EuclidEngineArea TestArea = EuclidEngineArea.Instantiate(new Vector3(2, 2, 2), new Vector3(1, 1, 1), Vector3.zero, Quaternion.identity);
             GameObject TestObject = new GameObject();
             TestObject.transform.position = Vector3.zero;
-            TestObject.AddComponent<Other>();
+            //TestObject.AddComponent<Other>();
 
             //while(!Other.test1)
             //    Thread.Sleep(100);

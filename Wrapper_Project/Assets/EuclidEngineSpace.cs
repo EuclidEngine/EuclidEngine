@@ -12,7 +12,7 @@ public class EuclidEngineSpace : MonoBehaviour
     public GameObject[] prefabs = new GameObject[6];
     public float[] prefRot = new float[6];
     public float worldRadius = 1f;
-    public Camera mainCamera;
+    public GameObject mainPlayer;
 
     private List<SphericalObject> objects = new List<SphericalObject>();
 
@@ -27,26 +27,32 @@ public class EuclidEngineSpace : MonoBehaviour
 
     void Awake()
     {
-        if (!mainCamera || worldRadius <= 0 || prefabs.Length != 6 || Array.Exists(prefabs, o => !o))
+        if (!mainPlayer || worldRadius <= 0 || prefabs.Length != 6/* || Array.Exists(prefabs, o => !o)*/)
             throw new System.Exception();
 
         Collider[] objs;
         for (int i = 0; i < 6; ++i) {
-            var shunk = Instantiate(prefabs[i], transform);
+            var shunk = Instantiate(prefabs[i] ? prefabs[i] : new GameObject(), transform);
             shunk.name = String.Format("Shunk {0}",i);
             if (i == 0) {
-                mainCamera.transform.parent = shunk.transform;
+                mainPlayer.transform.parent = shunk.transform;
+                Camera mainCamera = mainPlayer.GetComponentInChildren<Camera>();
                 mainCamera.gameObject.AddComponent<SphericalCamera>();
                 mainCamera.cullingMatrix = Matrix4x4.Ortho(-100.0f, 100.0f, -100.0f, 100.0f, -100.0f, 100.0f);
-                objs = mainCamera.GetComponentsInParent<Collider>();
-                foreach (Collider obj in objs)
+                objects.Add(mainPlayer.AddComponent<SphericalController>());
+                objs = mainPlayer.GetComponentsInChildren<Collider>();
+                foreach (Collider obj in objs) {
+                    if (obj.gameObject.name == mainPlayer.name) continue;
                     objects.Add(obj.gameObject.AddComponent<SphericalObject>());
+                }
             }
             shunk.AddComponent<SphericalShunk>().gyroPos = shunkPos[i];
             shunk.transform.localEulerAngles = new Vector3(0, prefRot[i], 0);
             objs = shunk.GetComponentsInChildren<Collider>();
-            foreach (Collider obj in objs)
+            foreach (Collider obj in objs) {
+                if (obj.gameObject.name == mainPlayer.name) continue;
                 objects.Add(obj.gameObject.AddComponent<SphericalObject>());
+            }
         }
         Shader.SetGlobalFloat("_EEWorldRadius", worldRadius);
     }
@@ -56,6 +62,7 @@ public class EuclidEngineSpace : MonoBehaviour
         var cEnum = objects.GetEnumerator();
         while (cEnum.MoveNext()) {
             var enum2 = cEnum;
+            if (!cEnum.Current) continue;
             while (enum2.MoveNext()) {
                 if (enum2.Current && cEnum.Current.CheckCollision(enum2.Current)) {
                     cEnum.Current.OnTriggerEnter(enum2.Current.GetComponent<Collider>());

@@ -7,13 +7,17 @@ UNITY_INSTANCING_BUFFER_END(Props)
 #define PI 3.14159265359
 
 struct v2g {
-    float4 worldPos : TEXCOORD0;
+    float4 worldPos : TEXCOORD1;
     float4 normal : NORMAL;
     float4 pos : SV_POSITION;
+    float4 uv : TEXCOORD0;
+    float dot : TEXCOORD2;
     fixed4 color : COLOR;
 };
 struct g2f {
     float4 pos : SV_POSITION;
+    float4 uv : TEXCOORD0;
+    float dot : TEXCOORD2;
     fixed4 color : COLOR;
 };
 struct sphericalPos {
@@ -25,63 +29,13 @@ float4 _Camera;
 float4 _TileOrigin;
 float4 _SphereOrigin;
 float _EEWorldRadius = 1;
+float _Height;// TODO
+sampler2D _MainTex;
 int _Activate;
-/*
-float4 sphericalToCartesian(sphericalPos pos)
-{
-    float4 newpos;
-    newpos[0] = pos.r * cos(pos.angles[0]);
-    newpos[1] = pos.r * sin(pos.angles[0]) * cos(pos.angles[1]);
-    newpos[2] = pos.r * sin(pos.angles[0]) * sin(pos.angles[1]) * cos(pos.angles[2]);
-    newpos[3] = pos.r * sin(pos.angles[0]) * sin(pos.angles[1]) * sin(pos.angles[2]);
-    return newpos;
-}
-
-sphericalPos cartesianToSpherical(float4 pos)
-{
-    sphericalPos newpos;
-    newpos.r = 1;//length(pos);
-    newpos.angles[0] = acos(pos.x / length(pos.wzyx));
-    newpos.angles[1] = acos(pos.y / length(pos.wzy));
-    if (pos.w >= 0)
-        newpos.angles[2] = acos(pos.z / length(pos.wz));
-    else
-        newpos.angles[2] = 2 * PI - acos(pos.z / length(pos.wz));
-    return newpos;
-}
-
-float4 worldToSpherical(float4 pos)
-{
-    //pos.w = sqrt(1 - pos.x * pos.x - pos.y * pos.y - pos.z * pos.z);
-    sphericalPos spos = cartesianToSpherical(pos);
-    // angles
-    // angles[0] + pi/2
-    // angles[1] + pi/2
-    // angles[2] + pi
-    // angles[2] + pi  angles[0] + pi/2
-    // angles[2] + pi  angles[1] + pi/2
-    spos.angles[0] = fmod(spos.angles[0], PI);
-    return sphericalToCartesian(spos);
-}
-*/
-// cos -sin
-// sin  cos
-float2x2 rotation2D(float2 v1, float2 v2)
-{
-    float l = length(v1) * length(v2);
-    if (abs(l) <= 0.0001f)
-        return float2x2(1.f,0.f,0.f,1.f);
-    float2x2 trig;
-    trig._11 = dot(v1, v2) / l;
-    trig._22 = trig._11;
-    trig._21 = dot(float2(-v1.y,v1.x), v2) / l; // Perp dot product => dot(perp(v1),v2) = ||v1|| ||v2|| sin
-    trig._12 = -trig._21;
-    return trig;
-}
 
 float3 mobius_add(float3 v1, float3 v2, inout float3 n) {
     float3 c = cross(v2, v1);
-    float l = 1 - dot(v2, v1);
+    float l = 1 - dot(v1, v2);
     float3 t = v1 + v2;
     float4 v3 = normalize(float4(c, l));
     float3 q = cross(v3.xyz, n); q += q;
@@ -89,138 +43,25 @@ float3 mobius_add(float3 v1, float3 v2, inout float3 n) {
     return (t * l + cross(c, t)) / (l * l + dot(c, c));
 }
 
-float4 quatMul(float4 q1, float4 q2)
-{ 
-    return float4(
-        q1.x * q2.w + q1.w * q2.x + q1.y * q2.z - q1.z * q2.y,
-        q1.y * q2.w + q1.w * q2.x + q1.z * q2.x - q1.x * q2.z,
-        q1.z * q2.w + q1.w * q2.z + q1.x * q2.y - q1.y * q2.x,
-        q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z
-    );
-}
-
-float4 quatInv(float4 q)
-{
-    float l = dot(q,q);
-    return float4(-q.x/l, -q.y/l, -q.z/l, q.w/l);
-}
-
-float4 rotFromTo(float4 v1, float4 v2) { return quatMul(quatInv(normalize(v1)), normalize(v2)); }
-
-float4 reverseStereographicalProjection(float4 pos, float4 tileOrigin, float4 sphereCenter, float sphereRadius)
-{
-#if 0
-    float4 P = quatMul(pos, rotFromTo(float4(0,0,0,1), tileOrigin - sphereCenter));
-    float4 Q = sphereCenter - tileOrigin;
-    float4 QP = P - Q;
-    float4 OQ = - tileOrigin;// Q - _origin
-    float coeff = -2 * dot(QP, OQ) / dot(QP, QP);
-
-    return Q + coeff * QP + sphereCenter;
-#elif 1
-    // QP => P' <==> (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',w')
-    // ||s-P'|| = rad <==> (xs-x')^2 + (ys-y')^2 + (zs-z')^2 + (ws-w')^2 = rad^2
-    // (xs-x')² = (xs - xq - k(xp-xq))² = (k(xp-xq) + (xq-xs))²
-    // (xs-x')² = k²(xp-xq)² + k*2(xp-xq)(xq-xs) + (xq-xs)²
-    float4 Q = float4(0,0,0,1+sphereRadius) + float4(0,0,0,1) * sphereRadius;
-    float4 QP = pos - Q;
-    float4 SQ = float4(0,0,0,1) * sphereRadius;//Q - float4(0,0,0,1+sphereRadius);
-
-    // (Ak² + Bk + C) = rad^2
-    float A = dot(QP, QP); // == length(QP)^2
-    float B = 2 * dot(QP, SQ);
-    // C = length(SQ)^2 = radius^2 ==> C - rad^2 = 0
-
-    // det = B²-4AC
-    // k = (-B{+-}sqrt(det))/2A
-    // k = {0, -B/A}
-    float coeff = -B / A;
-
-    // https://fr.wikipedia.org/wiki/Rotation_en_quatre_dimensions#Constructions_des_matrices_de_rotation
-    // Get the rotation matrix between the projection point and Q 
-    float4 projPoint = sphereCenter - (normalize(tileOrigin) * sphereRadius - sphereCenter);
-    float4 calcCenterProj = SQ;
-    float4 centerProj = projPoint - sphereCenter;
-    float4x4 rotate = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
-    // True when both are 0 or none are 0
-    if ((length(calcCenterProj.xy) == 0) ^ (length(centerProj.xy) != 0)) {
-        rotate._11_12_21_22 = rotation2D(calcCenterProj.xy, centerProj.xy);
-        rotate._33_34_43_44 = rotation2D(calcCenterProj.zw, centerProj.zw);
-    } else if ((length(calcCenterProj.xz) == 0) ^ (length(centerProj.xz) != 0)) {
-        rotate._11_13_31_33 = rotation2D(calcCenterProj.xz, centerProj.xz);
-        rotate._22_24_42_44 = rotation2D(calcCenterProj.yw, centerProj.yw);
-    } else if ((length(calcCenterProj.xw) == 0) ^ (length(centerProj.xw) != 0)) {
-        rotate._11_14_41_44 = rotation2D(calcCenterProj.xw, centerProj.xw);
-        rotate._22_23_32_33 = rotation2D(calcCenterProj.yz, centerProj.yz);
-    }
-
-    return mul(SQ + coeff * QP, rotate) + sphereCenter;
-#endif
-}
-
-// https://en.wikipedia.org/wiki/Stereographic_projection#Generalizations
-float4 stereographicalProjection(float4 pos, float4 projVect, float4 sphereCenter, float sphereRadius)
-{
-#if 0
-    float4 Q = sphereCenter - projVect;
-    float4 QP = normalize((pos - sphereCenter) - Q);
-    float coeff;
-    if (abs(dot(-Q, QP)) <= 0.0001f)
-        coeff = 1000*1000*1000;
-    else
-        coeff = 2 * sphereRadius * sphereRadius / dot(-Q, QP);
-    float4 newPos = Q + QP * coeff;
-    return quatMul(newPos, rotFromTo(projVect - sphereCenter, float4(0,0,0,1)));
-#elif 1
-    // QP => P' (P' ∈ S, OQ ⊥ S)
-    // dot(QO,QP) = length(QO)*length(QP)*cos(OQP)
-    // cos(OQP) = 2*OQ/QP'
-    // QP' = 2*OQ/cos(OQP)
-    float4 projPoint = normalize(projVect) * sphereRadius;
-    float cosQ = dot(pos-sphereCenter-projPoint, projPoint) / (sphereRadius * sphereRadius); // len(pos-sphereCenter) == len(projPoint) == sphereRadius
-    float coeff = 2 * sphereRadius / cosQ;
-    float4 newPos = sphereCenter + projPoint + coeff * (pos-sphereCenter - projPoint);
-    newPos.w = 1;
-    return newPos;
-#elif 0
-    if (pos.w == projVect.w) {
-        return float4(0,0,0,0);
-    } else {
-        // QP => P' (P'.w = {0,1})
-        // (xq,yq,zq,wq) + k*(xp-xq, yp-yq, zp-zq, wp-wq) => (x',y',z',{0,1})
-        // wq + k(wp-wq) = {0,1}
-        // k = ({0,1}-wq) / (wp-wq) = (wq-{0,1}) / (wq-wp)
-        float coeff = (projPoint.w - wTargetedPlan) / (projPoint.w - pos.w);
-        return projPoint + coeff * (pos - projPoint);
-    }  
-#endif
-}
-
-/*
-    Reverse orthographic projection relativ to chunk center
-    ~ Transformation position relativ to hypercenter of chunk ~
-    Stereographic projection relativ to camera
-*/
-
-v2g vertex(float4 vertex : POSITION, float4 normal : NORMAL)
+v2g vertex(float4 vertex : POSITION, float4 normal : NORMAL, float4 uv : TEXCOORD0)
 {
     v2g o;
+    o.uv = uv;
     o.normal = normal;
     // o.pos = o.worldPos = vertex;
     o.color = vertex;//1 * (normalize(vertex) * 0.8 + abs(normal) * 0.2);//normalize(sphericalPos) / 2 + 0.5;
 
-#if 1    
     float4x4 view = UNITY_MATRIX_V;
     view._m03_m13_m23 = 0.0;
     float3 shiftV = mul(UNITY_MATRIX_V._m03_m13_m23, view);
-    //shiftV *= 0.1749606 / 1.5;
-    shiftV *= (1.0001 / 0.5774) / 1.5;
+    shiftV *= tan(0.5 / _EEWorldRadius * 1.0001 / 0.5774) / 1.5;
 
     float4 wpos = mul(unity_ObjectToWorld, vertex / _EEWorldRadius);
-    float3 wnormal = UnityObjectToWorldNormal(normal);
+    float3 wnormal = UnityObjectToWorldNormal(normal);// / _EEWorldRadius;
     o.worldPos = wpos;
 
     wpos.xyz *= 1.0001;
+    wpos.y = tan(wpos.y) * sqrt(1 + dot(wpos.xz, wpos.xz));
     //wpos.y = tan(wpos.y) * sqrt(1.0 + dot(wpos.xz, wpos.xz));// If useTanH
 
     float4x4 i_GyrVec = UNITY_ACCESS_INSTANCED_PROP(Props, _GyrVec);
@@ -228,60 +69,28 @@ v2g vertex(float4 vertex : POSITION, float4 normal : NORMAL)
     wpos.xyz = mobius_add(wpos.xyz, i_GyrVec._m03_m13_m23, wnormal);
     wpos.xyz = mul(i_GyrVec, wpos.xyz);
     wnormal = mul(i_GyrVec, wnormal);
-    wpos.xyz = mobius_add(wpos.xyz * _EEWorldRadius, shiftV, wnormal);
+    wpos.xyz = mobius_add(wpos.xyz, shiftV, wnormal);
+    o.dot = dot(wpos.xyz,wpos.xyz);
+#if SKY
+    wpos.xyz /= o.dot;
+#endif
+    wpos *= _EEWorldRadius;
 
     if (_Activate)
         // Euclidean pos to Screen pos
         o.pos = mul(UNITY_MATRIX_P, mul(view, wpos));
     else
         o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
-#elif 0
-    // Vertex pos to Chunk pos
-    float4 wpos = mul(unity_ObjectToWorld, vertex);
-    // Chunk pos to Spherical pos
-    wpos = reverseStereographicalProjection(wpos, _TileOrigin, _SphereOrigin, _EEWorldRadius);
-    o.worldPos = wpos;
-    // Spherical pos to Euclidean pos
-    //float4 cameraPos = reverseStereographicalProjection(_Camera, _Camera, _SphereOrigin, _EEWorldRadius);
-    wpos = stereographicalProjection(wpos, _Camera, _SphereOrigin, _EEWorldRadius);//_SphereOrigin - ((normalize(_Camera)*_EEWorldRadius) - _SphereOrigin));
-
-    if (_Activate)
-        // Euclidean pos to Screen pos
-        o.pos = mul(UNITY_MATRIX_VP, wpos);
-    else
-        o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
-#endif
     return o;
-    //float4 worldPos = float4(mul(unity_ObjectToWorld, vertex).xyz / _Radius,1);
-    //worldPos = worldToSpherical(worldPos);
-    //worldPos = stereographicalProjection(worldPos.xwzy);
-    ////if (length(worldPos.xyz) <= 1) {
-    ////    worldPos.z = sqrt(1 - worldPos.x * worldPos.x - worldPos.y * worldPos.y);
-    ////    //worldPos = float3(worldPos.xy / (1 - worldPos.z), 1 / _Radius);
-    ////}
-    ////float4 worldPos = mul(unity_ObjectToWorld, vertex) / _Radius;
-    ////if (length(worldPos.xyz) <= 1) {
-    ////    worldPos.w = -sqrt(1 - worldPos.x * worldPos.x - worldPos.y * worldPos.y - worldPos.z * worldPos.z);
-    ////    //worldPos.y = 1 / worldPos.y;
-    ////    worldPos = float4(worldPos.xyz / (1 - worldPos.w), 1 / _Radius);
-    ////    //worldPos.y = 1 / worldPos.y;
-    ////}
-    //v2g o;
-    //o.worldPos = worldPos;
-    //o.normal = normal;
-    //if (_Activate)
-    //    o.pos = mul(UNITY_MATRIX_VP, float4(worldPos.xyz * _Radius, 1));
-    //else
-    //    o.pos = mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, vertex));
-    //o.color = normalize(vertex) * 0.8 + abs(normal) * 0.2;//normalize(sphericalPos) / 2 + 0.5;
-    //return o;
 }
 
 g2f lerpV2f(g2f i1, g2f i2, float v)
 {
     g2f o;
-    o.pos = i1.pos + v * (i2.pos - i1.pos);
-    o.color = i1.color + v * (i2.color - i1.color);
+    o.pos = lerp(i1.pos, i2.pos, v);
+    o.uv = lerp(i1.uv, i2.uv, v);
+    o.dot = lerp(i1.dot, i2.dot, v);
+    o.color = lerp(i1.color, i2.color, v);
     return o;
 }
 
@@ -305,9 +114,9 @@ void geometry(triangle v2g input[3], inout TriangleStream<g2f> OutputStream)
     float3 dots = {abs(dot(v0, -v2)), abs(dot(v1, -v0)), abs(dot(v2, -v1))};
     uint rightAngle = dots[0] < dots[1] ? (dots[0] < dots[2] ? 0 : 2) : (dots[1] < dots[2] ? 1 : 2);
 
-    g2f v00 = {input[(rightAngle + 0) % 3].pos, input[(rightAngle + 0) % 3].color};
-    g2f v30 = {input[(rightAngle + 1) % 3].pos, input[(rightAngle + 1) % 3].color};
-    g2f v03 = {input[(rightAngle + 2) % 3].pos, input[(rightAngle + 2) % 3].color};
+    g2f v00 = {input[(rightAngle + 0) % 3].pos, input[(rightAngle + 0) % 3].uv, input[(rightAngle + 0) % 3].dot, input[(rightAngle + 0) % 3].color};
+    g2f v30 = {input[(rightAngle + 1) % 3].pos, input[(rightAngle + 1) % 3].uv, input[(rightAngle + 1) % 3].dot, input[(rightAngle + 1) % 3].color};
+    g2f v03 = {input[(rightAngle + 2) % 3].pos, input[(rightAngle + 2) % 3].uv, input[(rightAngle + 2) % 3].dot, input[(rightAngle + 2) % 3].color};
     g2f v10 = lerpV2f(v00, v30, 1.f/3.f);
     g2f v20 = lerpV2f(v00, v30, 2.f/3.f);
     g2f v01 = lerpV2f(v00, v03, 1.f/3.f);
@@ -342,9 +151,18 @@ void geometry(triangle v2g input[3], inout TriangleStream<g2f> OutputStream)
     OutputStream.RestartStrip();
 }
 
-fixed4 fragment(v2g i) : SV_Target
+void fragment(v2g i, out fixed4 color : SV_Target, out float depth : SV_DEPTH)
 {
-    return i.color;
+#if GROUND
+    if (i.dot > 2.0) discard;
+    depth = 0.5 + i.pos.z*0.5;
+    // color = fixed4(0,0.5+i.pos.z/2,0,1);
+#elif SKY
+    if (i.dot < 0.5) discard;
+    depth = 0.5 - i.pos.z*0.5;
+    // color = fixed4(0.5-i.pos.z/2,0,0,1);
+#endif
+    color = lerp(i.color, tex2D(_MainTex, i.uv.xy), 1);
 }
 
 #if false

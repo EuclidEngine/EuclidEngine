@@ -51,7 +51,9 @@ public class NewSphericalSpace : EditorWindow
             space.prefabs = gos;
             space.prefRot = rots;
             space.worldRadius = worldSize;
-            space.mainCamera = Object.FindObjectOfType<Camera>();
+            GameObject cam = Object.FindObjectOfType<Camera>().gameObject;
+            cam.AddComponent<BoxCollider>();
+            space.mainPlayer = cam;
         }
     }
 }
