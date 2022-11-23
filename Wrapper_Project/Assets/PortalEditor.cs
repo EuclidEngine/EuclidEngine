@@ -16,6 +16,7 @@ namespace EuclidEngine
         SerializedProperty screen;
         static Texture2D logoTexture = null;
         SerializedProperty recursionLimit;
+        static EuclidEnginePlayTime pT = new EuclidEnginePlayTime();
 
         /// @brief Editor Constructor
         void OnEnable()
@@ -33,6 +34,7 @@ namespace EuclidEngine
         private bool foldedMain = true;
         public override void OnInspectorGUI()
         {
+            pT.AddTime();
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.Label(logoTexture, GUILayout.Height(75), GUILayout.Width(75));
@@ -55,6 +57,11 @@ namespace EuclidEngine
                 EditorGUILayout.PropertyField(nearClipLimit);
             }
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void OnDestroy()
+        {
+            pT.OnDestroy<EuclidEngine.Portal>();
         }
     }
 }

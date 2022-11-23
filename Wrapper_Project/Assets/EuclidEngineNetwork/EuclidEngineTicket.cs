@@ -8,6 +8,7 @@ using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 
 #if UNITY_EDITOR
+
 public class EuclidEngineTicket : EditorWindow
 {
     private string ticket_object = "";
@@ -28,14 +29,19 @@ public class EuclidEngineTicket : EditorWindow
     }
 
     static Texture2D logoTexture = null;
+    static EuclidEnginePlayTime pT = null;
     private void OnEnable()
     {
         if (logoTexture == null)
             logoTexture = Resources.Load("img/background") as Texture2D;
+        if (pT == null)
+            pT = new EuclidEnginePlayTime();
     }
 
     void OnGUI()
     {
+        pT.AddTime();
+
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();
         GUILayout.Label(logoTexture, GUILayout.Height(75), GUILayout.Width(75));
@@ -91,6 +97,12 @@ public class EuclidEngineTicket : EditorWindow
 
         GUILayout.FlexibleSpace();
         this.Repaint();
+    }
+
+    private void OnDestroy()
+    {
+        if (pT != null)
+            pT.OnDestroy<EuclidEngineTicket>();
     }
 }
 #endif

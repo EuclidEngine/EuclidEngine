@@ -43,11 +43,12 @@ public class EuclidEngineAPI : MonoBehaviour
         return(response);
     }
 
-    public static HttpWebResponse SendPlaytime(string email, double playtime)
+    public static HttpWebResponse SendPlaytime(string email, string feature, int playtime)
     {
         string jsonBody;
         jsonBody = "{" +
             "\"email\": \"" + email + "\"," +
+            "\"feature\": \"" + feature + "\"," +
             "\"playtime\": \"" + playtime.ToString() + "\"" +
             "}";
         HttpWebResponse response = SendPostRequest("/playtime", AuthControllerPort, jsonBody);

@@ -5,12 +5,14 @@ using UnityEditor;
 
 namespace EuclidEngine
 {
-    [CustomEditor(typeof(CurvatureController)), CanEditMultipleObjects]
+    [CustomEditor(typeof(EuclidEngineCurvatureController)), CanEditMultipleObjects]
     [InitializeOnLoad]
     public class CurvatureControllerEditor : Editor
     {
         SerializedProperty worldCurvature;
         static Texture2D logoTexture = null;
+        EuclidEnginePlayTime pT = new EuclidEnginePlayTime();
+
 
         /// @brief Editor Constructor
         void OnEnable()
@@ -21,6 +23,7 @@ namespace EuclidEngine
         }
         public override void OnInspectorGUI()
         {
+            pT.AddTime();
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.Label(logoTexture, GUILayout.Height(75), GUILayout.Width(75));
@@ -33,6 +36,11 @@ namespace EuclidEngine
             EditorGUILayout.LabelField("Main Settings:");
             EditorGUILayout.PropertyField(worldCurvature);
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void OnDestroy()
+        {
+            pT.OnDestroy<EuclidEngineCurvatureController>();
         }
     }
 };
