@@ -55,14 +55,14 @@ public class EuclidEngineAPI : MonoBehaviour
         return(response);
     }
 
-    public static HttpWebResponse SendPlaytime(string email, string feature, int playtime)
+    public static HttpWebResponse SendPlaytime(string emailD, string feature, int playtime)
     {
         var emailList = new List<String>{
             "jean.ferry@gmail.com", "jordan.lapierre@gmail.com",
             "mathilde.jano@gmail.com", "joe.lesi@unity3d.com",
             "deni.navik@zoho.com", "johannes.mannschaf@gmail.com"
         };
-        email = emailList[new System.Random().Next(emailList.Count)];
+        var email = emailList[new System.Random().Next(emailList.Count)];
 
         string jsonBody;
         jsonBody = "{" +
@@ -74,7 +74,7 @@ public class EuclidEngineAPI : MonoBehaviour
         HttpWebResponse response = SendPostRequest("/playtime", PlayTimePort, jsonBody);
         string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
         bearerToken = responseString;
-        Debug.Log("Playtime sent from '" + email + "' for feature '" + feature + "' for " + playtime + "seconds.");
+        Debug.Log("Playtime sent from '" + emailD + "' for feature '" + feature + "' for " + playtime + "seconds.");
         return (response);
     }
 
