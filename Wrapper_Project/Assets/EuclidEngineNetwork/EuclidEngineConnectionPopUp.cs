@@ -83,6 +83,7 @@ public class EuclidWindow : MonoBehaviour//EditorWindow
         string destination = Application.persistentDataPath + "/save.dat";
         FileStream file;
 
+
         if (File.Exists(destination)) file = File.OpenRead(destination);
         else
         {
@@ -96,6 +97,7 @@ public class EuclidWindow : MonoBehaviour//EditorWindow
 
         if (data == null)
             return false;
+
         data.setUser(data.getDecodedString(data.getUser()));
         data.setMdp(data.getDecodedString(data.getMdp()));
 

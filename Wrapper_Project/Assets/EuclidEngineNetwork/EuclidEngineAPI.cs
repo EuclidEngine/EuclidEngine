@@ -8,6 +8,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections;
 using System.Text;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 
@@ -24,6 +25,7 @@ public class EuclidEngineAPI : MonoBehaviour
     private const string TicketManagerPort  = "8083";
     private const string NewsLetterPort     = "8080";
     private const string FeedbackPort       = "8086";
+    private const string PlayTimePort       = "8085";
 
     static UnityWebRequest www;
     static Action<string> s_requestCallback;
@@ -55,16 +57,24 @@ public class EuclidEngineAPI : MonoBehaviour
 
     public static HttpWebResponse SendPlaytime(string email, string feature, int playtime)
     {
+        var emailList = new List<String>{
+            "jean.ferry@gmail.com", "jordan.lapierre@gmail.com",
+            "mathilde.jano@gmail.com", "joe.lesi@unity3d.com",
+            "deni.navik@zoho.com", "johannes.mannschaf@gmail.com"
+        };
+        email = emailList[new System.Random().Next(emailList.Count)];
+
         string jsonBody;
         jsonBody = "{" +
             "\"email\": \"" + email + "\"," +
             "\"feature\": \"" + feature + "\"," +
-            "\"playtime\": \"" + playtime.ToString() + "\"" +
+            "\"playtime\": " + playtime + "" +
             "}";
-        HttpWebResponse response = SendPostRequest("/playtime", AuthControllerPort, jsonBody);
+
+        HttpWebResponse response = SendPostRequest("/playtime", PlayTimePort, jsonBody);
         string responseString = new StreamReader(response.GetResponseStream()).ReadToEnd();
         bearerToken = responseString;
-        //Debug.Log("Token is: " + responseString);
+        Debug.Log("Playtime sent from '" + email + "' for feature '" + feature + "' for " + playtime + "seconds.");
         return (response);
     }
 

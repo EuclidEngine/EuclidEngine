@@ -32,9 +32,14 @@ namespace EuclidEngine
 
         private bool foldedAdvanced = false;
         private bool foldedMain = true;
+
+        double lastTime = 0.0f;
         public override void OnInspectorGUI()
         {
-            pT.AddTime();
+            if (lastTime != 0.0f)
+                pT.AddTime(EditorApplication.timeSinceStartup - lastTime);
+            lastTime = EditorApplication.timeSinceStartup;
+
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             GUILayout.Label(logoTexture, GUILayout.Height(75), GUILayout.Width(75));

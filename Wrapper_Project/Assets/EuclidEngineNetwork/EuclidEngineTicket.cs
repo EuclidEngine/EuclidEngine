@@ -38,9 +38,17 @@ public class EuclidEngineTicket : EditorWindow
             pT = new EuclidEnginePlayTime();
     }
 
-    void OnGUI()
+    double lastTime = 0.0f;
+    private void OnDisable()
     {
-        pT.AddTime();
+        lastTime = 0.0f;
+    }
+
+    public void OnGUI()
+    {
+        if (lastTime != 0.0f)
+            pT.AddTime(EditorApplication.timeSinceStartup - lastTime);
+        lastTime = EditorApplication.timeSinceStartup;
 
         GUILayout.BeginHorizontal();
         GUILayout.FlexibleSpace();

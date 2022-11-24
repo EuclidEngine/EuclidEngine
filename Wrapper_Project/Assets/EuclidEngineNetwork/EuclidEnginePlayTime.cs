@@ -4,15 +4,10 @@ using UnityEngine;
 using UnityEditor;
 
 #if UNITY_EDITOR
-
 public class EuclidEnginePlayTime
 {
     private double totalTime = 0.0f;
     private string name;
-
-    private void Start()
-    {
-    }
 
     public void SetName<T>()
     {
@@ -24,11 +19,17 @@ public class EuclidEnginePlayTime
         totalTime += Time.deltaTime;
     }
 
+    public void AddTime(double time)
+    {
+        totalTime += time;
+    }
+
     public void OnDestroy<T>()
     {
+        if (totalTime == 0.0f) return;
+
         name = typeof(T).ToString();
-        Debug.Log("oprite tg: " + name);
-        EuclidEngineAPI.SendPlaytime(EuclidWindow.publicUserEmail, name, (int)totalTime / 1000);
+        EuclidEngineAPI.SendPlaytime(EuclidWindow.publicUserEmail, name, (int)totalTime);
     }
 }
 
