@@ -246,6 +246,7 @@ namespace EuclidEngine
         {
             //Call Area Start function
             base.Start();
+            Screen.lockCursor = true;
             NumberOfPieces = PlayerPrefs.GetInt("Length");
             changeY(NumberOfPieces);
             ChamberStart();

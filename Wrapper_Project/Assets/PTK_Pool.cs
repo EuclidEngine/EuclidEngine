@@ -33,11 +33,11 @@ public class PTK_Pool : MonoBehaviour
 
         foreach (GameObject enigma in colliderList)
         {
-            if (enigma.transform.localScale.x >= 0.5 && enigma.transform.localScale.x <= 0.51 && enigma.transform.localScale.z >= 0.5 && enigma.transform.localScale.z <= 0.51 && enigma.transform.localScale.y >= 4.90 && enigma.transform.localScale.y <= 5)
+            if (enigma.transform.localScale.x >= 0.49 && enigma.transform.localScale.x <= 0.51 && enigma.transform.localScale.z >= 0.5 && enigma.transform.localScale.z <= 0.51 && enigma.transform.localScale.y >= 4.90 && enigma.transform.localScale.y <= 5)
             {
                 if (enigma.transform.localPosition.x >= 3.1 && enigma.transform.localPosition.x <= 3.45)
                 {
-                    if (enigma.transform.localPosition.z >= 33.45 && enigma.transform.localPosition.z <= 33.49)
+                    if (enigma.transform.localPosition.z >= 33.28 && enigma.transform.localPosition.z <= 33.49)
                     {
                         completed = true;
                         audioSource.PlayOneShot(clip, volume);
