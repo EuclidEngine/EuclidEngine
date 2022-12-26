@@ -30,6 +30,7 @@ public class EuclidEnginePlayTime
 
         name = typeof(T).ToString();
         EuclidEngineAPI.SendPlaytime(EuclidWindow.publicUserEmail, name, (int)totalTime);
+        totalTime = 0.0f;
     }
 }
 
