@@ -7,11 +7,13 @@ public class Move : MonoBehaviour
 {
     public float speed = 2f;
     public GameObject roomObject;
+    public GameObject child;
+    private GameObject save = null;
     private NonVisualEuclidianRoom3 room; 
     private int current_config = 0;
 
     bool go_back = false;
-    Vector3[] pos_base = new[] { new Vector3(-100, -100, -100), new Vector3(39.22f, -118.34f, 36f),
+    Vector3[] pos_base = new[] { new Vector3(-100, -100, -100), new Vector3(28.726f, -120, 36f),
         new Vector3(39.22f, -120.34f, 36f), new Vector3(36.22f, -121.34f, 36f) };
 
     private Vector3 goal1 = new Vector3(28.726f, -120, 36f);
@@ -26,6 +28,10 @@ public class Move : MonoBehaviour
     void Start()
     {
         room = roomObject.GetComponent<NonVisualEuclidianRoom3>();
+        save = Instantiate(child, new Vector3(2.46f, -1.52f, -4.66f), Quaternion.identity);
+        save.transform.parent = transform;
+        save.transform.localPosition = new Vector3(2.46f, -1.52f, -4.66f);
+        //Vector3.MoveTowards(save.transform.position, new Vector3(2.46f, -1.52f, -4.66f), 0);
     }
 
     private void modifyPos(float x, float y, float z)
@@ -34,16 +40,31 @@ public class Move : MonoBehaviour
         transform.position = new_pos;
     }
 
+    private void Ok()
+    {
+        if (!save)
+        {
+            save = Instantiate(child, new Vector3(2.46f, -1.52f, -4.66f), Quaternion.identity);
+            save.transform.parent = transform;
+            save.transform.localPosition = new Vector3(2.46f, -1.52f, -4.66f);
+        }
+    }
+
     // Update is called once per frame
     void Update()
     {
         int config = room.getConfig();
+
         if (current_config != config)
         {
             current_config = config;
+            Ok();
             modifyPos(pos_base[config - 1].x, pos_base[config - 1].y, pos_base[config - 1].z);
             go_back = false;
         }
+
+        if (!save)
+            Ok();
 
         if (config == 2)
         {

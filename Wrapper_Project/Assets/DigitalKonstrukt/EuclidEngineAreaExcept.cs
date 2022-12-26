@@ -106,19 +106,14 @@ namespace EuclidEngine
         //Called on collision
         void OnTriggerEnter(Collider c)
         {
-            Debug.Log(c.transform.root.tag);
-            Debug.Log(transform.tag);
-
             if (c.transform.root.CompareTag("NotEuclid") || (c.transform.root.CompareTag("Player") && !transform.CompareTag("NotEuclid")))
             {
-                Debug.Log("je suis censé passé par ici");
                 return;
             }
 
 
             if (c.transform.root.CompareTag("Player"))
             {
-                Debug.Log("Jet suis dans le bon script");
                 c.GetComponent<FPSController>().changeSpeed(1f, 1.7f);
                 c.GetComponent<FPSController>().changeJumpForce(1.5f);
             }
@@ -134,7 +129,6 @@ namespace EuclidEngine
                 return;
             }
 
-            Debug.Log(name + " U exited");
             if (c.transform.root.CompareTag("Player")) {
                 c.GetComponent<FPSController>().changeSpeed(4, 8);
                 c.GetComponent<FPSController>().changeJumpForce(8);

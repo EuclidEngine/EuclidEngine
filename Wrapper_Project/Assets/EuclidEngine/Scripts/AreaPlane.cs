@@ -59,9 +59,11 @@ namespace EuclidEngine
             camera.Render();
 
             Rect rect = new Rect(minX, minY, maxX-minX, maxY-minY);
-            Rect readRect = new Rect(minX, minY, Math.Min(rect.width, Screen.width-minX), maxY - (minY < 0 ? 0 : minY));
+            Rect readRect = new Rect(minX, minY, Math.Min(rect.width, Screen.width-minX), Math.Min(rect.height, Screen.height + minY));
+            if (readRect.yMax < 0 || rect.width < 1 || rect.height < 1 || (readRect.x < 0 ? readRect.width + readRect.x : readRect.width) < 1 || readRect.height < 1 || rect.width > 2000 || rect.height > 2000) return;
+
             texture2D.Resize((int)rect.width, (int)rect.height);
-            texture2D.ReadPixels(readRect, (int)(minX < 0 ? -minX : 0), (int)(maxY > Screen.height ? maxY - Screen.height : 0), false);
+            texture2D.ReadPixels(readRect, (int)(minX < 0 ? minX * -1 : 0), (int)(maxY > Screen.height ? maxY - Screen.height : 0), false);
 
             for (int i = 0; i < renderer.sprite.vertices.Length; ++i)
             {

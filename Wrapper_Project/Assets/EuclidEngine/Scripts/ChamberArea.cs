@@ -279,12 +279,6 @@ namespace EuclidEngine
                 item.Key.Key.gameObject.layer ^= LayerMask.NameToLayer("toto");
             }
         }
-
-        /*// Update is called once per frame
-        void Update()
-        {
-
-        }*/
     }
 
     [System.Serializable]

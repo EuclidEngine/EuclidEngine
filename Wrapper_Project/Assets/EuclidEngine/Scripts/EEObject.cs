@@ -65,7 +65,7 @@ namespace EuclidEngine
         //Called at end (of object or scene)
         void OnDestroy()
         {
-            gameObject.transform.SetParent(EEObjectContainer.transform.parent);
+            //gameObject.transform.SetParent(EEObjectContainer.transform.parent);
             Destroy(EEObjectContainer);
         }
 

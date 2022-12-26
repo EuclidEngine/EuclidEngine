@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEngine.Events;
 using System;
 
+
 namespace EuclidEngine
 {
 
@@ -38,14 +39,12 @@ namespace EuclidEngine
         {
             if (!PlayerPrefs.HasKey("Length"))
             {
-                Debug.Log("Connarxd");
                 return;
             }
 
             // For each face
             if (PlayerPrefs.GetInt("Length") != NumberOfPieces.intValue)
             {
-                Debug.Log("C'est la que ça coince");
                 test.changeY(PlayerPrefs.GetInt("Length"));
                 NumberOfPiecesPerSide = PlayerPrefs.GetInt("Length");
                 NumberOfPieces.intValue = PlayerPrefs.GetInt("Length");

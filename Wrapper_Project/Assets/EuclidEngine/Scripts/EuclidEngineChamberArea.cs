@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace EuclidEngine
 {
-    [AddComponentMenu("Euclid Engine/Non Euclidian Chamber")]
+    [AddComponentMenu("Euclid Engine/Non Euclidian Room")]
     [RequireComponent(typeof(BoxCollider), typeof(Rigidbody), typeof(Material))]
 
 
@@ -13,7 +13,6 @@ namespace EuclidEngine
     {
         /* Beautiful print for editor */
         public static int Y = 0;
-        public Vector3 pos;
         // 6  because that is the number of sides
         [SerializeField] public bool[][,] ArrayOfSides = new bool[6][,] { new bool[0, 0], new bool[0, 0], new bool[0, 0], new bool[0, 0], new bool[0, 0], new bool[0, 0] };
         public void changeY(int new_y)
@@ -31,6 +30,9 @@ namespace EuclidEngine
 
         /* Const var*/
         private const int NUMBER_OF_FACES = 6;
+        private bool first_time = true;
+        private GameObject objToSpawn;
+        public Vector3 pos;
         string[] walls_name = { "BackSide", "FrontSide", "LeftSide", "RightSide", "TopSide", "BottomSide" };
 
         public void ChangeArraySize(ref bool[,] array, int size)
@@ -64,6 +66,40 @@ namespace EuclidEngine
         static double getRatio(int n)
         {
             return (n == 1 ? 1 : Math.Sqrt(n));
+        }
+
+        private void load_array_first_time()
+        {
+            string[] options = new string[]
+            {
+                "Back Side", "Front Side", "Right Side", "Left Side", "Top Side", "Bottom Side"
+            };
+
+            if (!PlayerPrefs.HasKey("Length"))
+            {
+                return;
+            }
+
+            for (int i = 0; i < 6; ++i)
+            {
+                if (PlayerPrefs.HasKey(options[i]))
+                {
+                    for (int j = 0; j < NumberOfPieces; ++j)
+                    {
+                        string[] side = PlayerPrefs.GetString(options[i]).Split(char.Parse("\n"));
+                        int[] nums = new int[NumberOfPieces];
+                        for (int k = 0; k < NumberOfPieces; ++k)
+                        {
+                            Debug.Log(side[k]);
+                            nums = Array.ConvertAll<string, int>(side[k].Split(','), int.Parse);
+                            for (int l = 0; l < NumberOfPieces; ++l)
+                            {
+                                ArrayOfSides[i][k, l] = (nums[l] == 1) ? true : false;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void verifyFaces(ref bool[] faces, float ratio)
@@ -157,7 +193,8 @@ namespace EuclidEngine
             {
                 if (i != 0 && i % _NumberOfPieces == 0)
                     ++k;
-                Walls.Add(Instantiate(myPrefab, _positions[k], Quaternion.LookRotation(_rotations[k].Item1, _rotations[k].Item2), transform));
+                Walls.Add((Instantiate(myPrefab, _positions[k], Quaternion.LookRotation(_rotations[k].Item1, _rotations[k].Item2))));
+                Walls[i].transform.parent = objToSpawn.transform;
             }
 
             // Set Wall size
@@ -238,16 +275,21 @@ namespace EuclidEngine
         {
             //Call Area Start function
             base.Start();
+            objToSpawn = new GameObject("Parent");
+            objToSpawn.transform.parent = transform;
             NumberOfPieces = PlayerPrefs.GetInt("Length");
             changeY(NumberOfPieces);
             ChamberStart();
-            Debug.Log(pos);
             transform.position = pos;
         }
 
         private void ChangeWallsMaterial(int _NumberOfPieces, ref bool[] good_faces, ref List<ListableClass>[] walls)
         {
             int k = 0;
+
+            if (first_time)
+                load_array_first_time();
+
             for (int i = 0; i < 6; ++i)
             {
                 /* In case the rule has been broken display whole face */
@@ -268,14 +310,13 @@ namespace EuclidEngine
                             }
                             else
                             {
-                                Debug.Log("x: " + j + " level" + k + " new x:" + j + " new lvel:" + ((NumberOfPieces - 1) - k));
                                 Walls[(((NumberOfPieces - 1) - k) * NumberOfPieces) + (j) + (i * _NumberOfPieces)].GetComponent<MeshRenderer>().enabled = false;
                                 Walls[(((NumberOfPieces - 1) - k) * NumberOfPieces) + (j) + (i * _NumberOfPieces)].GetComponent<BoxCollider>().enabled = false;
                             }
                         }
                     }
                 }
-
+                first_time = false;
             }
         }
 
@@ -406,23 +447,4 @@ namespace EuclidEngine
             ChangeWallsMaterial(NumberOfPieces * NumberOfPieces, ref good_faces, ref walls);
         }
     }
-}
-
-[System.Serializable]
-public class ListableClass
-{
-    public List<bool> row = new List<bool> { false };
-}
-
-public class BigTest : MonoBehaviour
-{
-    public static int Y;
-    [System.Serializable]
-    public class Column
-    {
-        public bool[] rows = new bool[Y];
-    }
-
-    public Column[] columns = new Column[Y];
-
 }
