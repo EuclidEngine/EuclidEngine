@@ -764,6 +764,7 @@ namespace EuclidEngine
             changeY(NumberOfPieces);
             ChamberStart();
             transform.position = pos;
+            objToSpawn.transform.localPosition = new Vector3(0, 0, 0);
         }
 
         private void ChangeWallsMaterial(int _NumberOfPieces, ref bool[] good_faces, ref List<ListableClass>[] walls)
